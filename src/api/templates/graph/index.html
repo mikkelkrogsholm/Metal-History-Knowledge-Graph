@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Graph Visualization | Metal History Knowledge Graph{% endblock %}
+{% block description %}Interactive visualization of metal music relationships and influences{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-bold text-metal-gold mb-4">Graph Visualization</h1>
+        <p class="text-xl text-metal-silver/80">
+            Explore the connections and relationships in metal history
+        </p>
+    </header>
+    
+    <!-- Controls -->
+    <div class="bg-metal-gray rounded-lg p-6 mb-8">
+        <form id="graph-controls" 
+              action="/graph" 
+              method="get"
+              hx-get="/graph/data"
+              hx-target="#graph-container"
+              hx-indicator="#graph-loading"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- View Type -->
+            <div>
+                <label for="view" class="block text-sm font-medium mb-2">View Type</label>
+                <select name="view" 
+                        id="view"
+                        class="w-full bg-metal-black text-metal-silver px-3 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
+                    {% for v in available_views %}
+                    <option value="{{ v.value }}" {% if v.value == view %}selected{% endif %}>
+                        {{ v.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Year Range -->
+            <div>
+                <label class="block text-sm font-medium mb-2">Year Range</label>
+                <div class="flex gap-2">
+                    <input type="number" 
+                           name="year_from" 
+                           {% if year_from %}value="{{ year_from }}"{% endif %}
+                           placeholder="From" 
+                           min="1960" 
+                           max="2024"
+                           class="flex-1 bg-metal-black text-metal-silver px-2 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
+                    <input type="number" 
+                           name="year_to" 
+                           {% if year_to %}value="{{ year_to }}"{% endif %}
+                           placeholder="To" 
+                           min="1960" 
+                           max="2024"
+                           class="flex-1 bg-metal-black text-metal-silver px-2 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
+                </div>
+            </div>
+            
+            <!-- Node Limit -->
+            <div>
+                <label for="limit" class="block text-sm font-medium mb-2">Max Nodes</label>
+                <input type="range" 
+                       name="limit" 
+                       id="limit"
+                       value="{{ limit }}"
+                       min="10" 
+                       max="200" 
+                       step="10"
+                       class="w-full"
+                       oninput="document.getElementById('limit-value').textContent = this.value">
+                <div class="text-center text-sm text-metal-silver/60">
+                    <span id="limit-value">{{ limit }}</span> nodes
+                </div>
+            </div>
+            
+            <!-- Update Button -->
+            <div class="flex items-end">
+                <button type="submit" 
+                        class="w-full bg-metal-gold hover:bg-yellow-600 text-black px-4 py-2 rounded transition font-semibold">
+                    Update Graph
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Graph Container -->
+    <div class="bg-metal-gray rounded-lg p-6 relative min-h-[600px]">
+        <!-- Loading Indicator -->
+        <div id="graph-loading" class="htmx-indicator absolute inset-0 bg-metal-gray/90 flex items-center justify-center z-20">
+            <div class="text-center">
+                <svg class="animate-spin h-12 w-12 text-metal-gold mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-metal-silver">Loading graph...</p>
+            </div>
+        </div>
+        
+        <!-- Graph Visualization -->
+        <div id="graph-container">
+            {% include 'graph/visualization.html' %}
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="mt-8 bg-metal-gray rounded-lg p-6">
+        <h3 class="text-xl font-bold text-metal-gold mb-4">Legend</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="flex items-center space-x-2">
+                <svg width="20" height="20">
+                    <circle cx="10" cy="10" r="8" fill="#FFD700" opacity="0.8"/>
+                </svg>
+                <span class="text-sm">Band</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <svg width="20" height="20">
+                    <circle cx="10" cy="10" r="6" fill="#4B9BFF" opacity="0.8"/>
+                </svg>
+                <span class="text-sm">Person</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <svg width="20" height="20">
+                    <rect x="2" y="2" width="16" height="16" fill="#FF6B6B" opacity="0.8"/>
+                </svg>
+                <span class="text-sm">Country</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <svg width="40" height="20">
+                    <line x1="0" y1="10" x2="40" y2="10" stroke="#888" stroke-width="2"/>
+                    <polygon points="40,10 35,5 35,15" fill="#888"/>
+                </svg>
+                <span class="text-sm">Influence/Connection</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="mt-8 bg-metal-gray rounded-lg p-6">
+        <h3 class="text-xl font-bold text-metal-gold mb-4">Instructions</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-semibold text-metal-silver mb-2">Navigation</h4>
+                <ul class="text-sm text-metal-silver/80 space-y-1">
+                    <li>• Click on nodes to view details</li>
+                    <li>• Use arrow keys to navigate between nodes</li>
+                    <li>• Tab through interactive elements</li>
+                    <li>• Press 'T' to toggle table view</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-metal-silver mb-2">With JavaScript Enabled</h4>
+                <ul class="text-sm text-metal-silver/80 space-y-1">
+                    <li>• Drag nodes to rearrange</li>
+                    <li>• Scroll to zoom in/out</li>
+                    <li>• Double-click to focus on a node</li>
+                    <li>• Hold Shift to select multiple nodes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Store graph data for progressive enhancement
+window.graphData = {{ graph_json|safe }};
+
+// Basic keyboard navigation (works without D3)
+document.addEventListener('DOMContentLoaded', function() {
+    const nodes = document.querySelectorAll('.graph-node');
+    let currentIndex = 0;
+    
+    // Make nodes focusable
+    nodes.forEach((node, index) => {
+        node.setAttribute('tabindex', '0');
+        node.setAttribute('role', 'button');
+        node.setAttribute('aria-label', node.dataset.name || 'Graph node');
+        
+        node.addEventListener('click', function() {
+            const url = node.dataset.url;
+            if (url) {
+                window.location.href = url;
+            }
+        });
+        
+        node.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                node.click();
+            }
+        });
+    });
+    
+    // Arrow key navigation
+    document.addEventListener('keydown', function(e) {
+        if (!nodes.length) return;
+        
+        switch(e.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % nodes.length;
+                nodes[currentIndex].focus();
+                break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+                e.preventDefault();
+                currentIndex = (currentIndex - 1 + nodes.length) % nodes.length;
+                nodes[currentIndex].focus();
+                break;
+            case 't':
+            case 'T':
+                // Toggle table view
+                const svg = document.getElementById('graph-svg');
+                const table = document.getElementById('graph-table');
+                if (svg && table) {
+                    if (svg.style.display === 'none') {
+                        svg.style.display = 'block';
+                        table.style.display = 'none';
+                    } else {
+                        svg.style.display = 'none';
+                        table.style.display = 'block';
+                    }
+                }
+                break;
+        }
+    });
+});
+
+// Load graph enhancement script
+const graphScript = document.createElement('script');
+graphScript.src = '/static/js/graph.js';
+document.head.appendChild(graphScript);
+
+// Load D3.js for progressive enhancement
+if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const d3Script = document.createElement('script');
+    d3Script.src = 'https://d3js.org/d3.v7.min.js';
+    d3Script.onload = function() {
+        // Initialize D3 enhancements when ready
+        if (typeof initializeD3Graph === 'function') {
+            initializeD3Graph(window.graphData);
+        }
+    };
+    document.head.appendChild(d3Script);
+}
+</script>
+{% endblock %}

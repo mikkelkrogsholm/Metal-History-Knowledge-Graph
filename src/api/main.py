@@ -19,7 +19,7 @@ import uuid
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from src.api.routers import bands, albums, search, graph, pages, web_bands, web_albums, web_search
+from src.api.routers import bands, albums, search, graph, pages, web_bands, web_albums, web_search, web_graph
 from src.api.services.database import DatabaseService
 from src.api.config import settings
 from src.api import deps
@@ -73,6 +73,7 @@ app.include_router(pages.router, tags=["pages"])
 app.include_router(web_bands.router, tags=["web"])
 app.include_router(web_albums.router, tags=["web"])
 app.include_router(web_search.router, tags=["web"])
+app.include_router(web_graph.router, tags=["web"])
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):

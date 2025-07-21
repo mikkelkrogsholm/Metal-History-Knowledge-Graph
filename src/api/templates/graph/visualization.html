@@ -1,0 +1,234 @@
+<!-- Graph Visualization Partial -->
+<div class="graph-visualization">
+    <!-- Stats Bar -->
+    <div class="flex justify-between items-center mb-4 text-sm text-metal-silver/60">
+        <div>
+            <span class="font-semibold">{{ stats.node_count }}</span> nodes,
+            <span class="font-semibold">{{ stats.edge_count }}</span> edges
+        </div>
+        <div>
+            {% if stats.density %}
+            Density: <span class="font-semibold">{{ "%.2f"|format(stats.density) }}</span>
+            {% endif %}
+            {% if stats.year_range %}
+            Years: <span class="font-semibold">{{ stats.year_range }}</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- SVG Graph -->
+    <svg id="graph-svg" 
+         width="100%" 
+         height="600" 
+         viewBox="0 0 1000 800"
+         class="w-full border border-metal-silver/20 rounded"
+         role="img"
+         aria-label="Graph visualization showing {{ stats.node_count }} nodes and {{ stats.edge_count }} connections">
+        
+        <!-- Define arrow markers -->
+        <defs>
+            <marker id="arrowhead" 
+                    markerWidth="10" 
+                    markerHeight="7" 
+                    refX="9" 
+                    refY="3.5" 
+                    orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#888" />
+            </marker>
+        </defs>
+        
+        <!-- Background -->
+        <rect width="1000" height="800" fill="#0a0a0a" />
+        
+        <!-- Grid (for orientation) -->
+        <g class="grid" opacity="0.1">
+            {% for i in range(0, 1001, 100) %}
+            <line x1="{{ i }}" y1="0" x2="{{ i }}" y2="800" stroke="#fff" />
+            {% endfor %}
+            {% for i in range(0, 801, 100) %}
+            <line x1="0" y1="{{ i }}" x2="1000" y2="{{ i }}" stroke="#fff" />
+            {% endfor %}
+        </g>
+        
+        <!-- Edges -->
+        <g class="edges">
+            {% for edge in edges %}
+            {% set source = None %}
+            {% set target = None %}
+            {% for node in nodes %}
+                {% if node.id == edge.source %}
+                    {% set source = node %}
+                {% endif %}
+                {% if node.id == edge.target %}
+                    {% set target = node %}
+                {% endif %}
+            {% endfor %}
+            {% if source and target %}
+            <line class="graph-edge"
+                  x1="{{ source.x }}" 
+                  y1="{{ source.y }}" 
+                  x2="{{ target.x }}" 
+                  y2="{{ target.y }}"
+                  stroke="#888"
+                  stroke-width="1"
+                  opacity="0.5"
+                  marker-end="url(#arrowhead)"
+                  data-source="{{ edge.source }}"
+                  data-target="{{ edge.target }}"
+                  data-type="{{ edge.type }}">
+                <title>{{ edge.type|title }} connection</title>
+            </line>
+            {% endif %}
+            {% endfor %}
+        </g>
+        
+        <!-- Nodes -->
+        <g class="nodes">
+            {% for node in nodes %}
+            {% if node.type == 'band' %}
+                {% set color = '#FFD700' %}
+                {% set radius = node.radius|default(10) %}
+            {% elif node.type == 'person' %}
+                {% set color = '#4B9BFF' %}
+                {% set radius = 8 %}
+            {% elif node.type == 'country' %}
+                {% set color = '#FF6B6B' %}
+                {% set radius = 15 %}
+            {% else %}
+                {% set color = '#888' %}
+                {% set radius = 8 %}
+            {% endif %}
+            
+            <g class="graph-node" 
+               transform="translate({{ node.x }}, {{ node.y }})"
+               data-id="{{ node.id }}"
+               data-name="{{ node.name }}"
+               data-type="{{ node.type }}"
+               {% if node.type == 'band' %}
+               data-url="/bands/{{ node.id }}"
+               {% elif node.type == 'person' %}
+               data-url="/people/{{ node.id.replace('person_', '') }}"
+               {% endif %}
+               style="cursor: pointer;">
+                
+                {% if node.type == 'country' %}
+                <rect x="-{{ radius }}" 
+                      y="-{{ radius }}" 
+                      width="{{ radius * 2 }}" 
+                      height="{{ radius * 2 }}"
+                      fill="{{ color }}"
+                      opacity="0.8"
+                      stroke="#fff"
+                      stroke-width="1">
+                    <title>{{ node.name }} ({{ node.band_count }} bands)</title>
+                </rect>
+                {% else %}
+                <circle r="{{ radius }}"
+                        fill="{{ color }}"
+                        opacity="0.8"
+                        stroke="#fff"
+                        stroke-width="1">
+                    <title>{{ node.name }}{% if node.year %} ({{ node.year }}){% endif %}</title>
+                </circle>
+                {% endif %}
+                
+                <!-- Node label -->
+                <text y="{{ radius + 15 }}" 
+                      text-anchor="middle"
+                      font-size="10"
+                      fill="#fff"
+                      opacity="0.8"
+                      style="pointer-events: none;">
+                    {{ node.name[:20] }}{% if node.name|length > 20 %}...{% endif %}
+                </text>
+            </g>
+            {% endfor %}
+        </g>
+    </svg>
+    
+    <!-- Table View (Alternative/Accessible View) -->
+    <div id="graph-table" style="display: none;" class="mt-8">
+        <h3 class="text-xl font-bold text-metal-gold mb-4">Table View</h3>
+        
+        <!-- Nodes Table -->
+        <div class="mb-8">
+            <h4 class="text-lg font-semibold text-metal-silver mb-2">Nodes</h4>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-metal-silver/20">
+                            <th class="text-left py-2">Name</th>
+                            <th class="text-left py-2">Type</th>
+                            <th class="text-left py-2">Details</th>
+                            <th class="text-left py-2">Connections</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for node in nodes %}
+                        <tr class="border-b border-metal-silver/10 hover:bg-metal-silver/5">
+                            <td class="py-2">
+                                {% if node.type == 'band' %}
+                                <a href="/bands/{{ node.id }}" class="text-metal-gold hover:text-yellow-400">
+                                    {{ node.name }}
+                                </a>
+                                {% else %}
+                                {{ node.name }}
+                                {% endif %}
+                            </td>
+                            <td class="py-2">{{ node.type|title }}</td>
+                            <td class="py-2">
+                                {% if node.year %}Year: {{ node.year }}{% endif %}
+                                {% if node.country %}Country: {{ node.country }}{% endif %}
+                                {% if node.band_count %}Bands: {{ node.band_count }}{% endif %}
+                            </td>
+                            <td class="py-2">
+                                {% if node.connections %}{{ node.connections }}{% else %}0{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Edges Table -->
+        <div>
+            <h4 class="text-lg font-semibold text-metal-silver mb-2">Connections</h4>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-metal-silver/20">
+                            <th class="text-left py-2">From</th>
+                            <th class="text-left py-2">Type</th>
+                            <th class="text-left py-2">To</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for edge in edges %}
+                        {% set source_name = '' %}
+                        {% set target_name = '' %}
+                        {% for node in nodes %}
+                            {% if node.id == edge.source %}
+                                {% set source_name = node.name %}
+                            {% endif %}
+                            {% if node.id == edge.target %}
+                                {% set target_name = node.name %}
+                            {% endif %}
+                        {% endfor %}
+                        <tr class="border-b border-metal-silver/10 hover:bg-metal-silver/5">
+                            <td class="py-2">{{ source_name }}</td>
+                            <td class="py-2">{{ edge.type|replace('_', ' ')|title }}</td>
+                            <td class="py-2">{{ target_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Store data for progressive enhancement -->
+<script>
+window.graphData = {{ graph_json|safe }};
+</script>
