@@ -93,14 +93,14 @@
                     <div class="flex gap-2">
                         <input type="number" 
                                name="year_from" 
-                               value="{{ year_from }}"
+                               {% if year_from %}value="{{ year_from }}"{% endif %}
                                placeholder="From" 
                                min="1960" 
                                max="2024"
                                class="flex-1 bg-metal-black text-metal-silver px-3 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
                         <input type="number" 
                                name="year_to" 
-                               value="{{ year_to }}"
+                               {% if year_to %}value="{{ year_to }}"{% endif %}
                                placeholder="To" 
                                min="1960" 
                                max="2024"
@@ -148,7 +148,8 @@
 // Handle form submission to update URL
 document.getElementById('search-form').addEventListener('htmx:beforeRequest', function(event) {
     // Update browser URL with search parameters
-    const formData = new FormData(event.target);
+    const form = document.getElementById('search-form');
+    const formData = new FormData(form);
     const params = new URLSearchParams(formData);
     const newUrl = `/search?${params.toString()}`;
     window.history.pushState({}, '', newUrl);
