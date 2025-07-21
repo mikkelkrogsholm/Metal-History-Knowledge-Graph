@@ -4,7 +4,12 @@ Page routes for server-rendered content
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-from src.api.main import templates
+from fastapi.templating import Jinja2Templates
+from pathlib import Path
+
+# Configure templates
+template_dir = Path(__file__).parent.parent / "templates"
+templates = Jinja2Templates(directory=str(template_dir))
 
 router = APIRouter()
 
