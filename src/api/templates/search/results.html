@@ -1,0 +1,157 @@
+<!-- Search Results Partial - Loaded via HTMX -->
+{% if not results %}
+    <!-- No Results State -->
+    <div class="text-center py-12">
+        <svg class="mx-auto h-16 w-16 text-metal-silver/40 mb-4" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="text-xl font-semibold text-metal-silver mb-2">No results found</h3>
+        <p class="text-metal-silver/60">
+            {% if query %}
+                No matches for "{{ query }}"
+            {% else %}
+                Enter a search query to get started
+            {% endif %}
+        </p>
+        {% if query %}
+        <p class="text-sm text-metal-silver/40 mt-2">
+            Try different keywords or adjust your filters
+        </p>
+        {% endif %}
+    </div>
+{% else %}
+    <!-- Results Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-metal-silver">
+            {{ total }} results
+            {% if query %}for "{{ query }}"{% endif %}
+        </h2>
+        <div class="text-sm text-metal-silver/60">
+            Page {{ page }} of {{ total_pages }}
+        </div>
+    </div>
+    
+    <!-- Results List -->
+    <div class="space-y-6">
+        {% for result in results %}
+        <article class="bg-metal-gray rounded-lg p-6 hover:ring-2 hover:ring-metal-gold/50 transition">
+            <!-- Result Type Badge -->
+            <div class="flex items-start justify-between mb-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    {% if result.type == 'band' %}bg-metal-gold/20 text-metal-gold
+                    {% elif result.type == 'album' %}bg-blue-500/20 text-blue-400
+                    {% elif result.type == 'person' %}bg-green-500/20 text-green-400
+                    {% endif %}">
+                    {{ result.type|title }}
+                </span>
+                {% if result.relevance_score %}
+                <span class="text-xs text-metal-silver/40">
+                    Score: {{ "%.2f"|format(result.relevance_score) }}
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Result Content -->
+            {% if result.type == 'band' %}
+                <h3 class="text-xl font-bold mb-2">
+                    <a href="/bands/{{ result.id }}" 
+                       class="text-metal-gold hover:text-yellow-400 transition">
+                        {{ result.name }}
+                    </a>
+                </h3>
+                <div class="text-metal-silver/80 space-y-1">
+                    {% if result.origin %}
+                    <p>Origin: {{ result.origin }}</p>
+                    {% endif %}
+                    {% if result.formed_year %}
+                    <p>Formed: {{ result.formed_year }}</p>
+                    {% endif %}
+                    {% if result.status %}
+                    <p>Status: {{ result.status }}</p>
+                    {% endif %}
+                    {% if result.genres %}
+                    <p>Genres: {{ result.genres|join(", ") }}</p>
+                    {% endif %}
+                </div>
+                {% if result.album_count %}
+                <p class="text-sm text-metal-silver/60 mt-2">
+                    {{ result.album_count }} album{{ 's' if result.album_count != 1 else '' }}
+                </p>
+                {% endif %}
+                
+            {% elif result.type == 'album' %}
+                <h3 class="text-xl font-bold mb-2">
+                    <a href="/albums/{{ result.id }}" 
+                       class="text-metal-gold hover:text-yellow-400 transition">
+                        {{ result.name }}
+                    </a>
+                </h3>
+                <div class="text-metal-silver/80 space-y-1">
+                    {% if result.band_name %}
+                    <p>
+                        Band: 
+                        <a href="/bands/{{ result.band_id }}" 
+                           class="text-metal-gold hover:text-yellow-400 transition">
+                            {{ result.band_name }}
+                        </a>
+                    </p>
+                    {% endif %}
+                    {% if result.release_date %}
+                    <p>Released: {{ result.release_date }}</p>
+                    {% endif %}
+                    {% if result.label %}
+                    <p>Label: {{ result.label }}</p>
+                    {% endif %}
+                    {% if result.genres %}
+                    <p>Genres: {{ result.genres|join(", ") }}</p>
+                    {% endif %}
+                </div>
+                
+            {% elif result.type == 'person' %}
+                <h3 class="text-xl font-bold mb-2">
+                    <a href="/people/{{ result.id }}" 
+                       class="text-metal-gold hover:text-yellow-400 transition">
+                        {{ result.name }}
+                    </a>
+                </h3>
+                <div class="text-metal-silver/80 space-y-1">
+                    {% if result.instruments %}
+                    <p>Instruments: {{ result.instruments|join(", ") }}</p>
+                    {% endif %}
+                    {% if result.birth_date %}
+                    <p>Born: {{ result.birth_date }}</p>
+                    {% endif %}
+                    {% if result.bands %}
+                    <p>Bands: 
+                        {% for band in result.bands[:3] %}
+                            <a href="/bands/{{ band.id }}" 
+                               class="text-metal-gold hover:text-yellow-400 transition">
+                                {{ band.name }}
+                            </a>
+                            {%- if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        {% if result.bands|length > 3 %}
+                            <span class="text-metal-silver/60">and {{ result.bands|length - 3 }} more</span>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            <!-- Highlighted Snippet (if available) -->
+            {% if result.snippet %}
+            <div class="mt-3 p-3 bg-metal-black/50 rounded text-sm text-metal-silver/70">
+                {{ result.snippet|safe }}
+            </div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="mt-8">
+        {% include 'components/pagination.html' %}
+    </div>
+    {% endif %}
+{% endif %}

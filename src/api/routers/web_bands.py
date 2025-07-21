@@ -121,7 +121,7 @@ async def band_detail(
                b.status as status
     """
     
-    band_result = db.execute_query(band_query, {"band_id": band_id})
+    band_result = db.execute_query(band_query, {"band_id": int(band_id)})
     if not band_result:
         raise HTTPException(status_code=404, detail="Band not found")
     
@@ -138,7 +138,7 @@ async def band_detail(
         ORDER BY a.release_date DESC
     """
     
-    albums_result = db.execute_query(albums_query, {"band_id": band_id})
+    albums_result = db.execute_query(albums_query, {"band_id": int(band_id)})
     albums = list(albums_result) if albums_result else []
     
     # Get members
@@ -151,7 +151,7 @@ async def band_detail(
         ORDER BY p.name
     """
     
-    members_result = db.execute_query(members_query, {"band_id": band_id})
+    members_result = db.execute_query(members_query, {"band_id": int(band_id)})
     members = list(members_result) if members_result else []
     
     # Get related bands (bands with shared members)
@@ -166,7 +166,7 @@ async def band_detail(
         LIMIT 10
     """
     
-    related_result = db.execute_query(related_query, {"band_id": band_id})
+    related_result = db.execute_query(related_query, {"band_id": int(band_id)})
     related_bands = list(related_result) if related_result else []
     
     # Calculate stats
