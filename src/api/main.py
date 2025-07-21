@@ -7,16 +7,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 import kuzu
 from pathlib import Path
 import sys
+import uuid
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from src.api.routers import bands, albums, search, graph
+from src.api.routers import bands, albums, search, graph, pages
 from src.api.services.database import DatabaseService
 from src.api.config import settings
 from src.api import deps
@@ -59,11 +62,14 @@ app.add_middleware(
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
-# Include routers
+# Include API routers
 app.include_router(bands.router, prefix="/api/v1/bands", tags=["bands"])
 app.include_router(albums.router, prefix="/api/v1/albums", tags=["albums"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
+
+# Include page routers (no prefix for web pages)
+app.include_router(pages.router, tags=["pages"])
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
@@ -93,6 +99,55 @@ async def health_check():
             raise HTTPException(status_code=503, detail="Database not connected")
     except Exception as e:
         raise HTTPException(status_code=503, detail=str(e))
+
+# Error handlers
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTP exceptions with custom error pages"""
+    if exc.status_code == 404:
+        return templates.TemplateResponse(
+            "errors/404.html",
+            {"request": request},
+            status_code=404
+        )
+    elif exc.status_code == 500:
+        return templates.TemplateResponse(
+            "errors/500.html",
+            {
+                "request": request,
+                "detail": str(exc.detail) if settings.ENVIRONMENT == "development" else None,
+                "request_id": str(uuid.uuid4())
+            },
+            status_code=500
+        )
+    # For other status codes, return JSON response
+    return {"detail": exc.detail, "status_code": exc.status_code}
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors"""
+    return templates.TemplateResponse(
+        "errors/500.html",
+        {
+            "request": request,
+            "detail": "Invalid request data" if settings.ENVIRONMENT != "development" else str(exc),
+            "request_id": str(uuid.uuid4())
+        },
+        status_code=422
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle all other exceptions"""
+    return templates.TemplateResponse(
+        "errors/500.html",
+        {
+            "request": request,
+            "detail": "An unexpected error occurred" if settings.ENVIRONMENT != "development" else str(exc),
+            "request_id": str(uuid.uuid4())
+        },
+        status_code=500
+    )
 
 if __name__ == "__main__":
     import uvicorn

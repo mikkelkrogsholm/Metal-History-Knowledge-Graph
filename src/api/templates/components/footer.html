@@ -1,0 +1,63 @@
+<!-- Footer Component -->
+<footer class="bg-metal-gray border-t border-metal-silver/20" role="contentinfo">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- About Section -->
+            <div>
+                <h3 class="text-metal-gold font-semibold mb-4">About</h3>
+                <p class="text-sm">
+                    Metal History Knowledge Graph is an interactive exploration tool for discovering 
+                    the rich history and connections within the metal music universe.
+                </p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-metal-gold font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/bands" class="hover:text-metal-gold transition">Browse Bands</a></li>
+                    <li><a href="/albums" class="hover:text-metal-gold transition">Browse Albums</a></li>
+                    <li><a href="/graph" class="hover:text-metal-gold transition">Explore Graph</a></li>
+                    <li><a href="/api/docs" class="hover:text-metal-gold transition">API Documentation</a></li>
+                </ul>
+            </div>
+            
+            <!-- Technical Info -->
+            <div>
+                <h3 class="text-metal-gold font-semibold mb-4">Built With</h3>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-center space-x-2">
+                        <span>⚡</span>
+                        <span>FastAPI + Jinja2</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <span>🗄️</span>
+                        <span>Kuzu Graph Database</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <span>🎨</span>
+                        <span>Tailwind CSS</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                        <span>🔄</span>
+                        <span>HTMX + Alpine.js</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="mt-8 pt-8 border-t border-metal-silver/10 text-center text-sm">
+            <p>&copy; {{ current_year }} Metal History Knowledge Graph. All rights reserved.</p>
+            <p class="mt-2 text-metal-silver/60">
+                Data sourced from metal history documents • 
+                <a href="https://github.com/mikkelkrogsholm/Metal-History-Knowledge-Graph" 
+                   class="hover:text-metal-gold transition"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    View on GitHub
+                </a>
+            </p>
+        </div>
+    </div>
+</footer>

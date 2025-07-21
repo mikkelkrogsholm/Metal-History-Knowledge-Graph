@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title|default("Content") }} | Metal History Knowledge Graph{% endblock %}
+{% block description %}{{ page_description|default("Explore content from the Metal History Knowledge Graph") }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Breadcrumb -->
+    {% if breadcrumbs %}
+    <nav aria-label="Breadcrumb" class="mb-6">
+        <ol class="flex items-center space-x-2 text-sm">
+            {% for crumb in breadcrumbs %}
+                {% if loop.last %}
+                    <li class="text-metal-silver/60" aria-current="page">{{ crumb.name }}</li>
+                {% else %}
+                    <li class="flex items-center">
+                        <a href="{{ crumb.url }}" class="hover:text-metal-gold transition">{{ crumb.name }}</a>
+                        <span class="mx-2 text-metal-silver/40">/</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+    {% endif %}
+    
+    <!-- Page Header -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-bold text-metal-gold mb-4">{{ page_title|default("Content") }}</h1>
+        {% if subtitle %}
+        <p class="text-xl text-metal-silver/80">{{ subtitle }}</p>
+        {% endif %}
+    </header>
+    
+    <!-- Main Content Area -->
+    <div class="prose prose-invert prose-lg max-w-none 
+                prose-headings:text-metal-gold 
+                prose-a:text-metal-gold prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-metal-silver
+                prose-code:text-metal-gold prose-code:bg-metal-gray prose-code:px-1 prose-code:rounded">
+        {% block page_content %}
+            {{ content|safe if content else "" }}
+        {% endblock %}
+    </div>
+    
+    <!-- Action Buttons (if any) -->
+    {% if actions %}
+    <div class="mt-8 flex flex-wrap gap-4">
+        {% for action in actions %}
+        <a href="{{ action.url }}" 
+           class="{% if action.primary %}bg-metal-gold hover:bg-yellow-600 text-black{% else %}bg-metal-gray hover:bg-gray-700 text-white border border-metal-silver/20{% endif %} px-6 py-3 rounded-lg transition font-semibold">
+            {{ action.text }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Related Links (if any) -->
+    {% if related_links %}
+    <aside class="mt-12 bg-metal-gray rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-metal-gold mb-4">Related Links</h2>
+        <ul class="space-y-2">
+            {% for link in related_links %}
+            <li class="flex items-center space-x-2">
+                <span class="text-metal-gold">→</span>
+                <a href="{{ link.url }}" class="hover:text-metal-gold transition">{{ link.text }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </aside>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Page-specific scripts can be added here -->
+{% endblock %}

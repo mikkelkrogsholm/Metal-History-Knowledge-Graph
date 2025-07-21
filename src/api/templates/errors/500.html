@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error | Metal History Knowledge Graph{% endblock %}
+{% block description %}An unexpected error occurred while processing your request.{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="text-center max-w-2xl mx-auto px-4">
+        <!-- Error Icon -->
+        <div class="text-8xl mb-6">⚡</div>
+        
+        <!-- Error Code -->
+        <h1 class="text-6xl font-bold text-metal-red mb-4">500</h1>
+        
+        <!-- Error Message -->
+        <h2 class="text-3xl font-semibold mb-4">Internal Server Error</h2>
+        
+        <p class="text-lg mb-8 text-metal-silver/80">
+            Something went wrong on our end. Like a broken guitar string mid-solo, 
+            we've hit an unexpected snag.
+        </p>
+        
+        <!-- Error Details (if provided) -->
+        {% if detail %}
+        <div class="bg-metal-gray rounded-lg p-6 mb-8 text-left">
+            <h3 class="text-lg font-semibold text-metal-red mb-2">Error Details:</h3>
+            <code class="text-sm text-metal-silver/60 block overflow-x-auto">{{ detail }}</code>
+        </div>
+        {% endif %}
+        
+        <!-- What to do -->
+        <div class="bg-metal-gray rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-metal-gold mb-4">What you can do:</h3>
+            <ul class="space-y-2 text-left max-w-md mx-auto">
+                <li class="flex items-start space-x-2">
+                    <span class="text-metal-gold mt-1">•</span>
+                    <span>Try refreshing the page in a moment</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <span class="text-metal-gold mt-1">•</span>
+                    <span>Check if the issue persists with different content</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <span class="text-metal-gold mt-1">•</span>
+                    <span>Return to the home page and try again</span>
+                </li>
+                <li class="flex items-start space-x-2">
+                    <span class="text-metal-gold mt-1">•</span>
+                    <span>Report the issue if it continues</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/" class="bg-metal-gold hover:bg-yellow-600 text-black px-6 py-3 rounded-lg transition font-semibold">
+                Return Home
+            </a>
+            <button onclick="location.reload()" class="bg-metal-gray hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition border border-metal-silver/20">
+                Retry
+            </button>
+        </div>
+        
+        <!-- Request ID (if available) -->
+        {% if request_id %}
+        <p class="mt-8 text-sm text-metal-silver/40">
+            Request ID: <code>{{ request_id }}</code>
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
