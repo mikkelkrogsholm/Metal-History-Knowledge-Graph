@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Search | Metal History Knowledge Graph{% endblock %}
+{% block description %}Search bands, albums, and people in the Metal History Knowledge Graph{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Page Header -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-bold text-metal-gold mb-4">Search</h1>
+        <p class="text-xl text-metal-silver/80">
+            Search across bands, albums, and people in our knowledge graph
+        </p>
+    </header>
+    
+    <!-- Search Form -->
+    <form id="search-form" 
+          action="/search"
+          method="get"
+          hx-get="/search/results"
+          hx-target="#search-results"
+          hx-indicator="#search-spinner"
+          hx-push-url="true"
+          class="space-y-6">
+        
+        <!-- Main Search Input -->
+        <div class="relative">
+            <input type="search" 
+                   name="q" 
+                   value="{{ query }}"
+                   placeholder="Search for bands, albums, or people..."
+                   class="w-full bg-metal-gray text-metal-silver px-4 py-3 pr-12 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none text-lg"
+                   hx-get="/search/suggestions"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-target="#search-suggestions"
+                   hx-indicator="#search-spinner"
+                   autocomplete="off">
+            
+            <!-- Search Button/Spinner -->
+            <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2">
+                <svg class="h-6 w-6 text-metal-silver hover:text-metal-gold transition" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+            
+            <!-- Loading Spinner -->
+            <div id="search-spinner" class="htmx-indicator absolute right-12 top-1/2 transform -translate-y-1/2">
+                <svg class="animate-spin h-5 w-5 text-metal-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            
+            <!-- Search Suggestions Dropdown -->
+            <div id="search-suggestions" class="absolute z-10 w-full mt-1"></div>
+        </div>
+        
+        <!-- Advanced Filters (Collapsible) -->
+        <details class="bg-metal-gray rounded-lg p-4" {% if show_filters %}open{% endif %}>
+            <summary class="cursor-pointer font-semibold text-metal-gold hover:text-yellow-400 transition">
+                Advanced Filters
+            </summary>
+            
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Entity Type Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Type</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="type" value="band" 
+                                   {% if 'band' in types %}checked{% endif %}
+                                   class="mr-2 text-metal-gold focus:ring-metal-gold">
+                            Bands
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="type" value="album" 
+                                   {% if 'album' in types %}checked{% endif %}
+                                   class="mr-2 text-metal-gold focus:ring-metal-gold">
+                            Albums
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="type" value="person" 
+                                   {% if 'person' in types %}checked{% endif %}
+                                   class="mr-2 text-metal-gold focus:ring-metal-gold">
+                            People
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Year Range Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Year Range</label>
+                    <div class="flex gap-2">
+                        <input type="number" 
+                               name="year_from" 
+                               value="{{ year_from }}"
+                               placeholder="From" 
+                               min="1960" 
+                               max="2024"
+                               class="flex-1 bg-metal-black text-metal-silver px-3 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
+                        <input type="number" 
+                               name="year_to" 
+                               value="{{ year_to }}"
+                               placeholder="To" 
+                               min="1960" 
+                               max="2024"
+                               class="flex-1 bg-metal-black text-metal-silver px-3 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
+                    </div>
+                </div>
+                
+                <!-- Sort Options -->
+                <div>
+                    <label for="sort" class="block text-sm font-medium mb-2">Sort By</label>
+                    <select name="sort" 
+                            id="sort"
+                            class="w-full bg-metal-black text-metal-silver px-3 py-2 rounded border border-metal-silver/20 focus:border-metal-gold focus:outline-none">
+                        <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>Relevance</option>
+                        <option value="name" {% if sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                        <option value="-name" {% if sort == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                        <option value="year" {% if sort == 'year' %}selected{% endif %}>Year (Oldest)</option>
+                        <option value="-year" {% if sort == '-year' %}selected{% endif %}>Year (Newest)</option>
+                    </select>
+                </div>
+                
+                <!-- Apply Filters Button -->
+                <div class="flex items-end">
+                    <button type="submit" 
+                            class="w-full bg-metal-gold hover:bg-yellow-600 text-black px-4 py-2 rounded transition font-semibold">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </details>
+    </form>
+    
+    <!-- Results Container -->
+    <div id="search-results" class="mt-8">
+        {% if initial_results %}
+            {% include 'search/results.html' %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Handle form submission to update URL
+document.getElementById('search-form').addEventListener('htmx:beforeRequest', function(event) {
+    // Update browser URL with search parameters
+    const formData = new FormData(event.target);
+    const params = new URLSearchParams(formData);
+    const newUrl = `/search?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
+});
+
+// Handle clicks outside suggestions to close dropdown
+document.addEventListener('click', function(event) {
+    const suggestions = document.getElementById('search-suggestions');
+    const searchInput = document.querySelector('input[name="q"]');
+    
+    if (!searchInput.contains(event.target) && !suggestions.contains(event.target)) {
+        suggestions.innerHTML = '';
+    }
+});
+</script>
+{% endblock %}

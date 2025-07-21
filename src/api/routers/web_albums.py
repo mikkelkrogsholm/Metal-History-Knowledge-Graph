@@ -133,7 +133,7 @@ async def album_detail(
                b.name as band_name
     """
     
-    album_result = db.execute_query(album_query, {"album_id": album_id})
+    album_result = db.execute_query(album_query, {"album_id": int(album_id)})
     if not album_result:
         raise HTTPException(status_code=404, detail="Album not found")
     
@@ -168,7 +168,7 @@ async def album_detail(
         ORDER BY t.position
     """
     
-    tracks_result = db.execute_query(tracks_query, {"album_id": album_id})
+    tracks_result = db.execute_query(tracks_query, {"album_id": int(album_id)})
     tracks = list(tracks_result) if tracks_result else []
     
     # Get credits (if available)
@@ -179,7 +179,7 @@ async def album_detail(
         ORDER BY p.name
     """
     
-    credits_result = db.execute_query(credits_query, {"album_id": album_id})
+    credits_result = db.execute_query(credits_query, {"album_id": int(album_id)})
     credits = list(credits_result) if credits_result else []
     
     # Get related albums (same year, same band, or similar)
@@ -205,7 +205,7 @@ async def album_detail(
         LIMIT 8
     """
     
-    related_result = db.execute_query(related_query, {"album_id": album_id})
+    related_result = db.execute_query(related_query, {"album_id": int(album_id)})
     related_albums = list(related_result) if related_result else []
     
     # Calculate total duration if tracks available
