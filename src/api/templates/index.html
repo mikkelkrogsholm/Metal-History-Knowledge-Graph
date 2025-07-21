@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center py-16">
+    <h1 class="text-5xl font-bold text-metal-gold mb-6">
+        Welcome to the Metal History Knowledge Graph
+    </h1>
+    <p class="text-xl mb-8 max-w-2xl mx-auto">
+        Explore the rich history of metal music through an interactive knowledge graph. 
+        Discover bands, albums, and the connections between them.
+    </p>
+    
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+        <div class="bg-metal-gray p-6 rounded-lg border border-metal-silver/20">
+            <h3 class="text-2xl font-bold text-metal-gold mb-2">500+</h3>
+            <p>Bands</p>
+        </div>
+        <div class="bg-metal-gray p-6 rounded-lg border border-metal-silver/20">
+            <h3 class="text-2xl font-bold text-metal-gold mb-2">1000+</h3>
+            <p>Albums</p>
+        </div>
+        <div class="bg-metal-gray p-6 rounded-lg border border-metal-silver/20">
+            <h3 class="text-2xl font-bold text-metal-gold mb-2">2000+</h3>
+            <p>Connections</p>
+        </div>
+    </div>
+    
+    <!-- Call to Action -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-semibold mb-4">Start Exploring</h2>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/bands" class="bg-metal-red hover:bg-red-800 text-white px-6 py-3 rounded-lg transition">
+                Browse Bands
+            </a>
+            <a href="/albums" class="bg-metal-gray hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition border border-metal-silver/20">
+                View Albums
+            </a>
+            <a href="/graph" class="bg-metal-gold hover:bg-yellow-600 text-black px-6 py-3 rounded-lg transition">
+                Explore Graph
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="max-w-2xl mx-auto mt-12">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Quick Search</h2>
+    <form action="/search" method="get" class="relative">
+        <input 
+            type="text" 
+            name="q" 
+            placeholder="Search for bands, albums, or musicians..." 
+            class="w-full bg-metal-gray text-metal-silver px-4 py-3 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+        >
+        <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-metal-gold hover:text-yellow-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </button>
+    </form>
+</div>
+{% endblock %}

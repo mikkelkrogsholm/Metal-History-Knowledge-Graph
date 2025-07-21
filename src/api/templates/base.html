@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block description %}Explore the history of metal music through an interactive knowledge graph{% endblock %}">
+    <title>{% block title %}{{ title|default("Metal History Knowledge Graph") }}{% endblock %}</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX for progressive enhancement -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Alpine.js for minimal interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'metal-black': '#0a0a0a',
+                        'metal-gray': '#1a1a1a',
+                        'metal-silver': '#c0c0c0',
+                        'metal-red': '#8b0000',
+                        'metal-gold': '#FFD700'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/main.css') }}">
+    
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-metal-black text-metal-silver min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="bg-metal-gray border-b border-metal-silver/20" x-data="{ mobileMenuOpen: false }">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="/" class="text-xl font-bold text-metal-gold">
+                    🎸 Metal History Graph
+                </a>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="/" class="hover:text-metal-gold transition">Home</a>
+                    <a href="/bands" class="hover:text-metal-gold transition">Bands</a>
+                    <a href="/albums" class="hover:text-metal-gold transition">Albums</a>
+                    <a href="/graph" class="hover:text-metal-gold transition">Graph</a>
+                    <a href="/api" class="hover:text-metal-gold transition">API</a>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor">
+                        <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div x-show="mobileMenuOpen" x-transition class="md:hidden pb-4">
+                <a href="/" class="block py-2 hover:text-metal-gold transition">Home</a>
+                <a href="/bands" class="block py-2 hover:text-metal-gold transition">Bands</a>
+                <a href="/albums" class="block py-2 hover:text-metal-gold transition">Albums</a>
+                <a href="/graph" class="block py-2 hover:text-metal-gold transition">Graph</a>
+                <a href="/api" class="block py-2 hover:text-metal-gold transition">API</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-metal-gray border-t border-metal-silver/20 py-6">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2024 Metal History Knowledge Graph. Built with FastAPI & Kuzu.</p>
+        </div>
+    </footer>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
