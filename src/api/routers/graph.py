@@ -6,15 +6,9 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional
 from src.api.models.entities import GraphResponse, GraphNode, GraphEdge
 from src.api.services.database import DatabaseService
-from src.api.main import db_service
+from src.api.deps import get_db
 
 router = APIRouter()
-
-def get_db() -> DatabaseService:
-    """Get database service dependency"""
-    if not db_service:
-        raise HTTPException(status_code=503, detail="Database service not available")
-    return db_service
 
 @router.get("/neighborhood/{entity_type}/{entity_id}", response_model=GraphResponse)
 async def get_entity_neighborhood(

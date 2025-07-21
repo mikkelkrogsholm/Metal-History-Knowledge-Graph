@@ -9,8 +9,11 @@ from pathlib import Path
 class Settings(BaseSettings):
     """API configuration settings"""
     
+    # Environment
+    ENVIRONMENT: str = "development"
+    
     # Database
-    DATABASE_PATH: str = "data/database/metal_history.db"
+    DATABASE_PATH: str = str(Path(__file__).parent.parent.parent / "data/database/metal_history.db")
     
     # API
     API_V1_STR: str = "/api/v1"

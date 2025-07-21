@@ -2,8 +2,11 @@
 FastAPI application for Metal History Knowledge Graph
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 from contextlib import asynccontextmanager
 import kuzu
 from pathlib import Path
@@ -16,20 +19,25 @@ sys.path.append(str(PROJECT_ROOT))
 from src.api.routers import bands, albums, search, graph
 from src.api.services.database import DatabaseService
 from src.api.config import settings
+from src.api import deps
 
-# Global database connection
-db_service = None
+# Configure templates
+template_dir = Path(__file__).parent / "templates"
+templates = Jinja2Templates(directory=str(template_dir))
+
+# Enable auto-reload in development
+if settings.ENVIRONMENT == "development":
+    templates.env.auto_reload = True
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle"""
-    global db_service
     # Startup
-    db_service = DatabaseService(settings.DATABASE_PATH)
+    deps.db_service = DatabaseService(settings.DATABASE_PATH)
     yield
     # Shutdown
-    if db_service:
-        db_service.close()
+    if deps.db_service:
+        deps.db_service.close()
 
 # Create FastAPI app
 app = FastAPI(
@@ -48,15 +56,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount static files
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
+
 # Include routers
 app.include_router(bands.router, prefix="/api/v1/bands", tags=["bands"])
 app.include_router(albums.router, prefix="/api/v1/albums", tags=["albums"])
 app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
 app.include_router(graph.router, prefix="/api/v1/graph", tags=["graph"])
 
-@app.get("/")
-async def root():
-    """Root endpoint"""
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    """Root endpoint - render home page"""
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "title": "Metal History Knowledge Graph"}
+    )
+
+@app.get("/api")
+async def api_root():
+    """API root endpoint"""
     return {
         "message": "Welcome to Metal History Knowledge Graph API",
         "docs": "/docs",
@@ -68,7 +87,7 @@ async def health_check():
     """Health check endpoint"""
     try:
         # Test database connection
-        if db_service and db_service.is_connected():
+        if deps.db_service and deps.db_service.is_connected():
             return {"status": "healthy", "database": "connected"}
         else:
             raise HTTPException(status_code=503, detail="Database not connected")

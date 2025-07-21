@@ -6,15 +6,9 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional
 from src.api.models.entities import BandResponse, AlbumResponse, PersonResponse, PaginatedResponse
 from src.api.services.database import DatabaseService
-from src.api.main import db_service
+from src.api.deps import get_db
 
 router = APIRouter()
-
-def get_db() -> DatabaseService:
-    """Get database service dependency"""
-    if not db_service:
-        raise HTTPException(status_code=503, detail="Database service not available")
-    return db_service
 
 @router.get("/", response_model=PaginatedResponse)
 async def get_bands(
