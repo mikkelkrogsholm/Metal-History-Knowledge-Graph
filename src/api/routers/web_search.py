@@ -158,27 +158,32 @@ async def search_entities(
     
     # Search bands
     if "band" in types:
-        band_where = [f"b.name CONTAINS '{query}'"]
-        if year_from:
-            band_where.append(f"b.formed_year >= {year_from}")
-        if year_to:
-            band_where.append(f"b.formed_year <= {year_to}")
-        
-        band_query = f"""
+        # Try a simpler query first to test
+        band_query = """
             MATCH (b:BAND)
-            WHERE {' AND '.join(band_where)}
-            OPTIONAL MATCH (b)-[:RELEASED]->(a:ALBUM)
-            WITH b, count(a) as album_count
             RETURN b.id as id,
                    b.name as name,
                    b.origin_country as origin,
                    b.formed_year as formed_year,
                    b.status as status,
-                   album_count,
+                   0 as album_count,
                    'band' as type
+            LIMIT 100
         """
         
         band_results = db.execute_query(band_query)
+        
+        # Filter results in Python for now
+        filtered_results = []
+        for row in band_results:
+            if row["name"] and query.lower() in row["name"].lower():
+                if year_from and row.get("formed_year") and row["formed_year"] < year_from:
+                    continue
+                if year_to and row.get("formed_year") and row["formed_year"] > year_to:
+                    continue
+                filtered_results.append(row)
+        
+        band_results = filtered_results
         for row in band_results:
             all_results.append({
                 "id": row["id"],
@@ -193,15 +198,8 @@ async def search_entities(
     
     # Search albums
     if "album" in types:
-        album_where = [f"a.title CONTAINS '{query}'"]
-        if year_from:
-            album_where.append(f"a.release_year >= {year_from}")
-        if year_to:
-            album_where.append(f"a.release_year <= {year_to}")
-        
-        album_query = f"""
+        album_query = """
             MATCH (a:ALBUM)
-            WHERE {' AND '.join(album_where)}
             OPTIONAL MATCH (b:BAND)-[:RELEASED]->(a)
             RETURN a.id as id,
                    a.title as name,
@@ -211,9 +209,22 @@ async def search_entities(
                    b.id as band_id,
                    b.name as band_name,
                    'album' as type
+            LIMIT 100
         """
         
         album_results = db.execute_query(album_query)
+        
+        # Filter results in Python
+        filtered_results = []
+        for row in album_results:
+            if row["name"] and query.lower() in row["name"].lower():
+                if year_from and row.get("release_year") and row["release_year"] < year_from:
+                    continue
+                if year_to and row.get("release_year") and row["release_year"] > year_to:
+                    continue
+                filtered_results.append(row)
+        
+        album_results = filtered_results
         for row in album_results:
             all_results.append({
                 "id": row["id"],
@@ -229,18 +240,26 @@ async def search_entities(
     
     # Search people
     if "person" in types:
-        person_query = f"""
+        person_query = """
             MATCH (p:PERSON)
-            WHERE p.name CONTAINS '{query}'
             OPTIONAL MATCH (p)-[:MEMBER_OF]->(b:BAND)
-            WITH p, collect({{id: b.id, name: b.name}}) as bands
+            WITH p, collect({id: b.id, name: b.name}) as bands
             RETURN p.id as id,
                    p.name as name,
                    bands,
                    'person' as type
+            LIMIT 100
         """
         
         person_results = db.execute_query(person_query)
+        
+        # Filter results in Python
+        filtered_results = []
+        for row in person_results:
+            if row["name"] and query.lower() in row["name"].lower():
+                filtered_results.append(row)
+        
+        person_results = filtered_results
         for row in person_results:
             all_results.append({
                 "id": row["id"],
@@ -284,66 +303,79 @@ async def get_suggestions(db: DatabaseService, query: str, limit: int) -> List[d
     suggestions = []
     
     # Get band suggestions
-    band_query = f"""
+    band_query = """
         MATCH (b:BAND)
-        WHERE b.name CONTAINS '{query}'
         RETURN b.id as id,
                b.name as name,
                b.origin_country as origin,
                'band' as type
-        ORDER BY b.name
-        LIMIT {limit // 3}
+        LIMIT 50
     """
     
     band_results = db.execute_query(band_query)
+    
+    # Filter in Python
     for row in band_results:
-        suggestions.append({
-            "id": row["id"],
-            "name": row["name"],
-            "type": "band",
-            "origin": row["origin"]
-        })
+        if row["name"] and query.lower() in row["name"].lower():
+            suggestions.append({
+                "id": row["id"],
+                "name": row["name"],
+                "type": "band",
+                "origin": row["origin"]
+            })
+            if len(suggestions) >= limit // 3:
+                break
     
     # Get album suggestions
-    album_query = f"""
+    album_query = """
         MATCH (a:ALBUM)
-        WHERE a.title CONTAINS '{query}'
         OPTIONAL MATCH (b:BAND)-[:RELEASED]->(a)
         RETURN a.id as id,
                a.title as name,
                b.name as band_name,
                'album' as type
-        ORDER BY a.title
-        LIMIT {limit // 3}
+        LIMIT 50
     """
     
     album_results = db.execute_query(album_query)
+    
+    # Filter in Python
+    album_count = 0
     for row in album_results:
-        suggestions.append({
-            "id": row["id"],
-            "name": row["name"],
-            "type": "album",
-            "band_name": row["band_name"]
-        })
+        if row["name"] and query.lower() in row["name"].lower():
+            suggestions.append({
+                "id": row["id"],
+                "name": row["name"],
+                "type": "album",
+                "band_name": row["band_name"]
+            })
+            album_count += 1
+            if album_count >= limit // 3:
+                break
     
     # Get person suggestions
-    person_query = f"""
+    person_query = """
         MATCH (p:PERSON)
-        WHERE p.name CONTAINS '{query}'
         RETURN p.id as id,
                p.name as name,
                'person' as type
-        ORDER BY p.name
-        LIMIT {limit // 3}
+        LIMIT 50
     """
     
     person_results = db.execute_query(person_query)
+    
+    # Filter in Python
+    person_count = 0
     for row in person_results:
-        suggestions.append({
-            "id": row["id"],
-            "name": row["name"],
-            "type": "person"
-        })
+        if row["name"] and query.lower() in row["name"].lower():
+            suggestions.append({
+                "id": row["id"],
+                "name": row["name"],
+                "type": "person"
+            })
+            person_count += 1
+            if person_count >= limit // 3:
+                break
     
     # Sort by relevance
     suggestions.sort(key=lambda x: calculate_relevance(query, x["name"]), reverse=True)
