@@ -5,7 +5,7 @@ Web routes for graph visualization (server-side rendered)
 from fastapi import APIRouter, Request, Query, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from pathlib import Path
 import math
 import json
@@ -19,29 +19,42 @@ templates = Jinja2Templates(directory=str(template_dir))
 
 router = APIRouter()
 
+def optional_int(value: Union[str, int, None]) -> Optional[int]:
+    """Convert empty string to None for optional int parameters"""
+    if value == "" or value is None:
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
 @router.get("/graph", response_class=HTMLResponse)
 async def graph_view(
     request: Request,
     view: str = Query("influences", description="Graph view type"),
     genre: Optional[str] = Query(None, description="Filter by genre"),
-    year_from: Optional[int] = Query(None, description="Filter by year from"),
-    year_to: Optional[int] = Query(None, description="Filter by year to"),
+    year_from: Optional[str] = Query(None, description="Filter by year from"),
+    year_to: Optional[str] = Query(None, description="Filter by year to"),
     limit: int = Query(50, ge=10, le=200, description="Limit nodes"),
     db: DatabaseService = Depends(get_db)
 ):
     """Render graph visualization page"""
     
+    # Convert year parameters
+    year_from_int = optional_int(year_from)
+    year_to_int = optional_int(year_to)
+    
     # Get graph data based on view type
     if view == "influences":
-        graph_data = await get_influence_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_influence_graph(db, genre, year_from_int, year_to_int, limit)
     elif view == "collaborations":
-        graph_data = await get_collaboration_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_collaboration_graph(db, genre, year_from_int, year_to_int, limit)
     elif view == "timeline":
-        graph_data = await get_timeline_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_timeline_graph(db, genre, year_from_int, year_to_int, limit)
     elif view == "geographic":
-        graph_data = await get_geographic_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_geographic_graph(db, genre, year_from_int, year_to_int, limit)
     else:
-        graph_data = await get_influence_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_influence_graph(db, genre, year_from_int, year_to_int, limit)
     
     # Calculate layout for server-side rendering
     layout = calculate_force_layout(graph_data["nodes"], graph_data["edges"])
@@ -53,8 +66,8 @@ async def graph_view(
             "request": request,
             "view": view,
             "genre": genre,
-            "year_from": year_from,
-            "year_to": year_to,
+            "year_from": year_from_int,
+            "year_to": year_to_int,
             "limit": limit,
             "nodes": layout["nodes"],
             "edges": layout["edges"],
@@ -74,24 +87,28 @@ async def graph_data_endpoint(
     request: Request,
     view: str = Query("influences"),
     genre: Optional[str] = Query(None),
-    year_from: Optional[int] = Query(None),
-    year_to: Optional[int] = Query(None),
+    year_from: Optional[str] = Query(None),
+    year_to: Optional[str] = Query(None),
     limit: int = Query(50, ge=10, le=200),
     db: DatabaseService = Depends(get_db)
 ):
     """Return graph data for HTMX updates"""
     
+    # Convert year parameters
+    year_from_int = optional_int(year_from)
+    year_to_int = optional_int(year_to)
+    
     # Get graph data
     if view == "influences":
         graph_data = await get_influence_graph(db, genre, year_from, year_to, limit)
     elif view == "collaborations":
-        graph_data = await get_collaboration_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_collaboration_graph(db, genre, year_from_int, year_to_int, limit)
     elif view == "timeline":
-        graph_data = await get_timeline_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_timeline_graph(db, genre, year_from_int, year_to_int, limit)
     elif view == "geographic":
-        graph_data = await get_geographic_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_geographic_graph(db, genre, year_from_int, year_to_int, limit)
     else:
-        graph_data = await get_influence_graph(db, genre, year_from, year_to, limit)
+        graph_data = await get_influence_graph(db, genre, year_from_int, year_to_int, limit)
     
     # Calculate layout
     layout = calculate_force_layout(graph_data["nodes"], graph_data["edges"])
