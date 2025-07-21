@@ -1,0 +1,122 @@
+{
+  "database_summary": {
+    "node_counts": {
+      "Band": 2,
+      "Person": 1,
+      "Album": 1
+    },
+    "relationship_counts": {},
+    "total_nodes": 4,
+    "total_relationships": 1
+  },
+  "degree_distribution": {
+    "total_nodes": 3,
+    "avg_degree": 0.3333333333333333,
+    "median_degree": 0.0,
+    "max_degree": 1,
+    "min_degree": 0,
+    "degree_distribution": {
+      "1": 1,
+      "0": 2
+    },
+    "by_node_type": {
+      "Band": {
+        "count": 2,
+        "avg_degree": 0.5,
+        "max_degree": 1,
+        "nodes": [
+          {
+            "name": "Black Sabbath",
+            "id": 1,
+            "out_degree": 1,
+            "in_degree": 0,
+            "total_degree": 1
+          },
+          {
+            "name": "Iron Maiden",
+            "id": 2,
+            "out_degree": 0,
+            "in_degree": 0,
+            "total_degree": 0
+          }
+        ]
+      },
+      "Person": {
+        "count": 1,
+        "avg_degree": 0.0,
+        "max_degree": 0,
+        "nodes": [
+          {
+            "name": "Tony Iommi",
+            "id": 1,
+            "out_degree": 0,
+            "in_degree": 0,
+            "total_degree": 0
+          }
+        ]
+      }
+    }
+  },
+  "relationship_patterns": {
+    "relationship_types": {},
+    "node_type_connections": {}
+  },
+  "influence_networks": {
+    "most_influential": [],
+    "influence_chains": [],
+    "influence_stats": {}
+  },
+  "temporal_patterns": {
+    "band_formation_timeline": [
+      {
+        "band": "Black Sabbath",
+        "year": 1968
+      },
+      {
+        "band": "Iron Maiden",
+        "year": 1975
+      }
+    ],
+    "album_release_timeline": [
+      {
+        "band": "Black Sabbath",
+        "album": "Paranoid",
+        "year": 1970
+      }
+    ],
+    "temporal_consistency_issues": []
+  },
+  "complex_queries": {
+    "queries_tested": [
+      {
+        "name": "Two-hop influence network",
+        "description": "Find bands influenced by Black Sabbath within 2 hops",
+        "execution_time_ms": 2.29,
+        "result_count": 0,
+        "sample_results": []
+      },
+      {
+        "name": "Band member connections",
+        "description": "List all bands with their members",
+        "execution_time_ms": 1.25,
+        "result_count": 0,
+        "sample_results": []
+      },
+      {
+        "name": "Album production network",
+        "description": "List all bands with their albums",
+        "execution_time_ms": 0.91,
+        "result_count": 1,
+        "sample_results": [
+          [
+            "Black Sabbath",
+            [
+              "Paranoid"
+            ]
+          ]
+        ]
+      }
+    ],
+    "performance_metrics": {}
+  }
+}

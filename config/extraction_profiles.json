@@ -1,0 +1,75 @@
+{
+  "profiles": {
+    "high": {
+      "description": "High-end systems (16+ cores, 32+ GB RAM)",
+      "parallel_workers": 8,
+      "batch_size": 10,
+      "num_ctx": 16384,
+      "num_predict": 4096,
+      "num_threads": 4,
+      "prefetch_chunks": true,
+      "use_memory_cache": true,
+      "resource_limits": {
+        "max_memory_percent": 75,
+        "max_cpu_percent": 85,
+        "memory_per_worker_gb": 4
+      }
+    },
+    "medium-high": {
+      "description": "Good systems (8+ cores, 16+ GB RAM)",
+      "parallel_workers": 4,
+      "batch_size": 5,
+      "num_ctx": 16384,
+      "num_predict": 4096,
+      "num_threads": 2,
+      "prefetch_chunks": true,
+      "use_memory_cache": true,
+      "resource_limits": {
+        "max_memory_percent": 70,
+        "max_cpu_percent": 80,
+        "memory_per_worker_gb": 3
+      }
+    },
+    "medium": {
+      "description": "Standard systems (4+ cores, 8+ GB RAM)",
+      "parallel_workers": 3,
+      "batch_size": 3,
+      "num_ctx": 8192,
+      "num_predict": 2048,
+      "num_threads": 2,
+      "prefetch_chunks": false,
+      "use_memory_cache": true,
+      "resource_limits": {
+        "max_memory_percent": 65,
+        "max_cpu_percent": 75,
+        "memory_per_worker_gb": 2
+      }
+    },
+    "low": {
+      "description": "Basic systems (<4 cores, <8 GB RAM)",
+      "parallel_workers": 1,
+      "batch_size": 1,
+      "num_ctx": 8192,
+      "num_predict": 2048,
+      "num_threads": 1,
+      "prefetch_chunks": false,
+      "use_memory_cache": false,
+      "resource_limits": {
+        "max_memory_percent": 60,
+        "max_cpu_percent": 70,
+        "memory_per_worker_gb": 1.5
+      }
+    }
+  },
+  "auto_detection": {
+    "enabled": true,
+    "override_env_var": "METAL_EXTRACTION_PROFILE",
+    "fallback_profile": "medium"
+  },
+  "apple_silicon_boost": {
+    "enabled": true,
+    "worker_multiplier": 1.2,
+    "memory_efficiency": 1.3,
+    "comment": "Apple Silicon has unified memory and better efficiency"
+  }
+}

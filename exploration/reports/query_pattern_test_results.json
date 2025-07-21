@@ -1,0 +1,465 @@
+{
+  "timestamp": "2025-07-19T20:14:06.642465",
+  "database": "schema/metal_history.db",
+  "query_patterns": [
+    {
+      "category": "influence_patterns",
+      "test_count": 5,
+      "successful": 5,
+      "failed": 0,
+      "total_time_ms": 25.910139083862305,
+      "test_results": [
+        {
+          "name": "Direct influence",
+          "description": "Find direct band-to-band influences",
+          "query": "\n                MATCH (b1:Band)-[:INFLUENCED_BY]->(b2:Band)\n                RETURN b1.name as influenced, b2.name as influencer\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 9.57,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Multi-hop influence chains",
+          "description": "Find influence chains of 2-3 hops",
+          "query": "\n                MATCH path = (b1:Band)-[:INFLUENCED_BY*2..3]->(b2:Band)\n                RETURN b1.name as start_band, b2.name as end_band, LENGTH(path) as hops\n                ORDER BY hops DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 5.81,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Influence network size",
+          "description": "Calculate influence network size for each band",
+          "query": "\n                MATCH (b:Band)\n                OPTIONAL MATCH (b)<-[:INFLUENCED_BY]-(influenced:Band)\n                OPTIONAL MATCH (b)-[:INFLUENCED_BY]->(influencer:Band)\n                WITH b, COUNT(DISTINCT influenced) as out_influence, \n                     COUNT(DISTINCT influencer) as in_influence\n                RETURN b.name as band, out_influence, in_influence,\n                       out_influence + in_influence as total_influence\n                ORDER BY total_influence DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 4.74,
+          "row_count": 2,
+          "sample_results": [
+            [
+              "Black Sabbath",
+              0,
+              0,
+              0
+            ],
+            [
+              "Iron Maiden",
+              0,
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "name": "Mutual influence detection",
+          "description": "Find bands that influenced each other (should be rare/none)",
+          "query": "\n                MATCH (b1:Band)-[:INFLUENCED_BY]->(b2:Band)\n                MATCH (b2)-[:INFLUENCED_BY]->(b1)\n                RETURN b1.name as band1, b2.name as band2\n                ",
+          "status": "success",
+          "execution_time_ms": 0.76,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Influence by decade",
+          "description": "Analyze influence patterns across decades",
+          "query": "\n                MATCH (b1:Band)-[:INFLUENCED_BY]->(b2:Band)\n                WHERE b1.formed_year IS NOT NULL AND b2.formed_year IS NOT NULL\n                WITH b1, b2, (b1.formed_year / 10) * 10 as decade1,\n                     (b2.formed_year / 10) * 10 as decade2\n                RETURN decade1, decade2, COUNT(*) as influence_count\n                ORDER BY decade1, decade2\n                ",
+          "status": "success",
+          "execution_time_ms": 5.03,
+          "row_count": 0,
+          "sample_results": []
+        }
+      ]
+    },
+    {
+      "category": "genre_patterns",
+      "test_count": 5,
+      "successful": 5,
+      "failed": 0,
+      "total_time_ms": 8.314847946166992,
+      "test_results": [
+        {
+          "name": "Band genre associations",
+          "description": "Find bands and their associated genres",
+          "query": "\n                MATCH (b:Band)-[:PLAYS_GENRE]->(g:Subgenre)\n                RETURN b.name as band, COLLECT(g.name) as genres\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.26,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Genre evolution paths",
+          "description": "Trace genre evolution paths",
+          "query": "\n                MATCH path = (g1:Subgenre)-[:EVOLVED_INTO*1..3]->(g2:Subgenre)\n                RETURN g1.name as origin_genre, g2.name as evolved_genre, \n                       LENGTH(path) as evolution_steps\n                ORDER BY evolution_steps DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.15,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Genre popularity by band count",
+          "description": "Find most popular genres by band count",
+          "query": "\n                MATCH (g:Subgenre)<-[:PLAYS_GENRE]-(b:Band)\n                WITH g, COUNT(DISTINCT b) as band_count\n                RETURN g.name as genre, band_count\n                ORDER BY band_count DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 0.98,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Cross-genre bands",
+          "description": "Find bands that play multiple genres",
+          "query": "\n                MATCH (b:Band)-[:PLAYS_GENRE]->(g1:Subgenre)\n                MATCH (b)-[:PLAYS_GENRE]->(g2:Subgenre)\n                WHERE g1.name < g2.name\n                WITH b, COLLECT(DISTINCT g1.name) + COLLECT(DISTINCT g2.name) as genres\n                RETURN b.name as band, genres, SIZE(genres) as genre_count\n                ORDER BY genre_count DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 4.32,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Genre origin locations",
+          "description": "Find where genres originated",
+          "query": "\n                MATCH (g:Subgenre)-[:ORIGINATED_IN]->(loc:GeographicLocation)\n                RETURN g.name as genre, loc.city as city, loc.country as country\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 0.61,
+          "row_count": 0,
+          "sample_results": []
+        }
+      ]
+    },
+    {
+      "category": "temporal_patterns",
+      "test_count": 5,
+      "successful": 4,
+      "failed": 1,
+      "total_time_ms": 5.169868469238281,
+      "test_results": [
+        {
+          "name": "Band timeline",
+          "description": "Band formation and disbanding timeline",
+          "query": "\n                MATCH (b:Band)\n                WHERE b.formed_year IS NOT NULL\n                RETURN b.name as band, b.formed_year as formed, \n                       b.disbanded_year as disbanded\n                ORDER BY b.formed_year\n                LIMIT 20\n                ",
+          "status": "failed",
+          "error": "Binder exception: Cannot find property disbanded_year for b."
+        },
+        {
+          "name": "Album release timeline",
+          "description": "Album releases chronologically",
+          "query": "\n                MATCH (b:Band)-[:RELEASED]->(a:Album)\n                WHERE a.release_year IS NOT NULL\n                RETURN b.name as band, a.title as album, a.release_year as year\n                ORDER BY year\n                LIMIT 20\n                ",
+          "status": "success",
+          "execution_time_ms": 0.85,
+          "row_count": 1,
+          "sample_results": [
+            [
+              "Black Sabbath",
+              "Paranoid",
+              1970
+            ]
+          ]
+        },
+        {
+          "name": "Active bands by decade",
+          "description": "Count of bands formed by decade",
+          "query": "\n                MATCH (b:Band)\n                WHERE b.formed_year IS NOT NULL\n                WITH b, (b.formed_year / 10) * 10 as decade\n                RETURN decade, COUNT(b) as band_count\n                ORDER BY decade\n                ",
+          "status": "success",
+          "execution_time_ms": 1.6,
+          "row_count": 2,
+          "sample_results": [
+            [
+              1960,
+              1
+            ],
+            [
+              1970,
+              1
+            ]
+          ]
+        },
+        {
+          "name": "Member age at band formation",
+          "description": "Calculate member ages when bands formed",
+          "query": "\n                MATCH (p:Person)-[:MEMBER_OF]->(b:Band)\n                WHERE p.birth_year IS NOT NULL AND b.formed_year IS NOT NULL\n                WITH p, b, b.formed_year - p.birth_year as age_at_formation\n                WHERE age_at_formation > 0 AND age_at_formation < 100\n                RETURN p.name as person, b.name as band, age_at_formation\n                ORDER BY age_at_formation\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.85,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Era associations",
+          "description": "Bands associated with specific eras",
+          "query": "\n                MATCH (b:Band)-[:ACTIVE_DURING]->(e:Era)\n                RETURN e.name as era, COLLECT(b.name) as bands\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 0.88,
+          "row_count": 0,
+          "sample_results": []
+        }
+      ]
+    },
+    {
+      "category": "geographic_patterns",
+      "test_count": 5,
+      "successful": 3,
+      "failed": 2,
+      "total_time_ms": 2.087831497192383,
+      "test_results": [
+        {
+          "name": "Band locations",
+          "description": "Where bands were formed",
+          "query": "\n                MATCH (b:Band)-[:FORMED_IN]->(loc:GeographicLocation)\n                RETURN b.name as band, loc.city as city, loc.country as country\n                LIMIT 20\n                ",
+          "status": "success",
+          "execution_time_ms": 0.55,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Metal scenes by city",
+          "description": "Cities with multiple metal bands",
+          "query": "\n                MATCH (b:Band)-[:FORMED_IN]->(loc:GeographicLocation)\n                WITH loc, COUNT(b) as band_count, COLLECT(b.name) as bands\n                WHERE band_count > 1\n                RETURN loc.city as city, loc.country as country, \n                       band_count, bands[0..5] as sample_bands\n                ORDER BY band_count DESC\n                LIMIT 10\n                ",
+          "status": "failed",
+          "error": "Parser exception: Invalid input <bands[0..>: expected rule oC_ProjectionItem (line: 6, offset: 42)\n\"                       band_count, bands[0..5] as sample_bands\"\n                                           ^^"
+        },
+        {
+          "name": "Country metal statistics",
+          "description": "Countries ranked by metal band count",
+          "query": "\n                MATCH (b:Band)-[:FORMED_IN]->(loc:GeographicLocation)\n                WITH loc.country as country, COUNT(DISTINCT b) as band_count\n                RETURN country, band_count\n                ORDER BY band_count DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 0.5,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Recording studio locations",
+          "description": "Most used recording studios",
+          "query": "\n                MATCH (a:Album)-[:RECORDED_AT]->(s:Studio)\n                OPTIONAL MATCH (s)-[:LOCATED_IN]->(loc:GeographicLocation)\n                RETURN s.name as studio, loc.city as city, \n                       COUNT(a) as albums_recorded\n                ORDER BY albums_recorded DESC\n                LIMIT 10\n                ",
+          "status": "failed",
+          "error": "Binder exception: Table LOCATED_IN does not exist."
+        },
+        {
+          "name": "Genre geographic distribution",
+          "description": "Genre distribution by country",
+          "query": "\n                MATCH (b:Band)-[:FORMED_IN]->(loc:GeographicLocation)\n                MATCH (b)-[:PLAYS_GENRE]->(g:Subgenre)\n                WITH g.name as genre, loc.country as country, COUNT(b) as band_count\n                RETURN genre, country, band_count\n                ORDER BY genre, band_count DESC\n                LIMIT 20\n                ",
+          "status": "success",
+          "execution_time_ms": 1.04,
+          "row_count": 0,
+          "sample_results": []
+        }
+      ]
+    },
+    {
+      "category": "collaboration_patterns",
+      "test_count": 5,
+      "successful": 5,
+      "failed": 0,
+      "total_time_ms": 9.071588516235352,
+      "test_results": [
+        {
+          "name": "Band members",
+          "description": "Bands with their members",
+          "query": "\n                MATCH (p:Person)-[:MEMBER_OF]->(b:Band)\n                WITH b, COLLECT(p.name) as members\n                RETURN b.name as band, members, SIZE(members) as member_count\n                ORDER BY member_count DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 0.91,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Multi-band members",
+          "description": "People who played in multiple bands",
+          "query": "\n                MATCH (p:Person)-[:MEMBER_OF]->(b:Band)\n                WITH p, COUNT(DISTINCT b) as band_count, COLLECT(b.name) as bands\n                WHERE band_count > 1\n                RETURN p.name as person, band_count, bands\n                ORDER BY band_count DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 0.97,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Producer collaborations",
+          "description": "Producers who worked with multiple bands",
+          "query": "\n                MATCH (p:Person)-[:PRODUCED]->(a:Album)<-[:RELEASED]-(b:Band)\n                WITH p, COUNT(DISTINCT b) as band_count, COUNT(a) as album_count\n                WHERE band_count > 1\n                RETURN p.name as producer, band_count, album_count\n                ORDER BY album_count DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.36,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Band connection network",
+          "description": "Bands connected through shared members",
+          "query": "\n                MATCH (b1:Band)<-[:MEMBER_OF]-(p:Person)-[:MEMBER_OF]->(b2:Band)\n                WHERE b1.name < b2.name\n                WITH b1, b2, COLLECT(p.name) as shared_members\n                RETURN b1.name as band1, b2.name as band2, shared_members\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.37,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Album collaborations",
+          "description": "Albums featuring guest artists",
+          "query": "\n                MATCH (a:Album)-[:ALBUM_FEATURES]->(p:Person)\n                MATCH (a)<-[:RELEASED]-(b:Band)\n                WHERE NOT (p)-[:MEMBER_OF]->(b)\n                RETURN a.title as album, b.name as band, \n                       COLLECT(p.name) as guest_artists\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 4.47,
+          "row_count": 0,
+          "sample_results": []
+        }
+      ]
+    },
+    {
+      "category": "complex_patterns",
+      "test_count": 5,
+      "successful": 3,
+      "failed": 2,
+      "total_time_ms": 5.374908447265625,
+      "test_results": [
+        {
+          "name": "Shortest path between bands",
+          "description": "Find shortest connection path between two bands",
+          "query": "\n                MATCH (b1:Band {name: 'Black Sabbath'}), (b2:Band {name: 'Iron Maiden'})\n                MATCH path = shortestPath((b1)-[*..10]-(b2))\n                RETURN [n in nodes(path) | CASE \n                    WHEN n:Band THEN n.name \n                    WHEN n:Person THEN n.name \n                    ELSE 'Unknown' END] as path_nodes,\n                       LENGTH(path) as path_length\n                ",
+          "status": "failed",
+          "error": "Parser exception: Invalid input <MATCH (b1:Band {name: 'Black Sabbath'}), (b2:Band {name: 'Iron Maiden'})\n                MATCH path = shortestPath>: expected rule oC_SingleQuery (line: 3, offset: 29)\n\"                MATCH path = shortestPath((b1)-[*..10]-(b2))\"\n                              ^^^^^^^^^^^^"
+        },
+        {
+          "name": "Influence PageRank approximation",
+          "description": "Approximate PageRank for band influence",
+          "query": "\n                MATCH (b:Band)\n                OPTIONAL MATCH (b)<-[:INFLUENCED_BY]-(b2:Band)\n                OPTIONAL MATCH (b2)<-[:INFLUENCED_BY]-(b3:Band)\n                WITH b, COUNT(DISTINCT b2) as direct_influence,\n                     COUNT(DISTINCT b3) as indirect_influence\n                RETURN b.name as band, \n                       direct_influence + indirect_influence * 0.5 as influence_score\n                ORDER BY influence_score DESC\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 2.07,
+          "row_count": 2,
+          "sample_results": [
+            [
+              "Black Sabbath",
+              0.0
+            ],
+            [
+              "Iron Maiden",
+              0.0
+            ]
+          ]
+        },
+        {
+          "name": "Album production network",
+          "description": "Complete album production information",
+          "query": "\n                MATCH (a:Album)<-[:RELEASED]-(b:Band)\n                OPTIONAL MATCH (a)<-[:PRODUCED]-(p:Person)\n                OPTIONAL MATCH (a)-[:RECORDED_AT]->(s:Studio)\n                WITH a, b, COLLECT(DISTINCT p.name) as producers, s\n                RETURN a.title as album, b.name as band, \n                       producers, s.name as studio\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.42,
+          "row_count": 1,
+          "sample_results": [
+            [
+              "Paranoid",
+              "Black Sabbath",
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "name": "Genre convergence points",
+          "description": "Genres that emerged from multiple sources",
+          "query": "\n                MATCH (g1:Subgenre)-[:EVOLVED_INTO*1..3]->(g:Subgenre)\n                MATCH (g2:Subgenre)-[:EVOLVED_INTO*1..3]->(g)\n                WHERE g1.name < g2.name\n                WITH g, g1, g2\n                RETURN g.name as convergence_genre,\n                       COLLECT(DISTINCT g1.name) + COLLECT(DISTINCT g2.name) as source_genres\n                LIMIT 10\n                ",
+          "status": "success",
+          "execution_time_ms": 1.89,
+          "row_count": 0,
+          "sample_results": []
+        },
+        {
+          "name": "Band activity overlap",
+          "description": "Bands that were active during overlapping periods",
+          "query": "\n                MATCH (b1:Band), (b2:Band)\n                WHERE b1.name < b2.name\n                      AND b1.formed_year IS NOT NULL AND b2.formed_year IS NOT NULL\n                      AND b1.formed_year <= b2.formed_year\n                      AND (b1.disbanded_year IS NULL OR b1.disbanded_year >= b2.formed_year)\n                RETURN b1.name as band1, b2.name as band2,\n                       b1.formed_year as b1_start, b1.disbanded_year as b1_end,\n                       b2.formed_year as b2_start, b2.disbanded_year as b2_end\n                LIMIT 10\n                ",
+          "status": "failed",
+          "error": "Binder exception: Cannot find property disbanded_year for b1."
+        }
+      ]
+    }
+  ],
+  "performance_summary": {
+    "total_queries_tested": 30,
+    "successful_queries": 25,
+    "failed_queries": 5,
+    "avg_execution_time_ms": 2.24,
+    "fastest_query": {
+      "name": "Country metal statistics",
+      "category": "geographic_patterns",
+      "time": 0.5
+    },
+    "slowest_query": {
+      "name": "Direct influence",
+      "category": "influence_patterns",
+      "time": 9.57
+    },
+    "by_category": {
+      "influence_patterns": {
+        "total": 5,
+        "successful": 5,
+        "failed": 0,
+        "avg_time_ms": 5.18
+      },
+      "genre_patterns": {
+        "total": 5,
+        "successful": 5,
+        "failed": 0,
+        "avg_time_ms": 1.66
+      },
+      "temporal_patterns": {
+        "total": 5,
+        "successful": 4,
+        "failed": 1,
+        "avg_time_ms": 1.29
+      },
+      "geographic_patterns": {
+        "total": 5,
+        "successful": 3,
+        "failed": 2,
+        "avg_time_ms": 0.7
+      },
+      "collaboration_patterns": {
+        "total": 5,
+        "successful": 5,
+        "failed": 0,
+        "avg_time_ms": 1.81
+      },
+      "complex_patterns": {
+        "total": 5,
+        "successful": 3,
+        "failed": 2,
+        "avg_time_ms": 1.79
+      }
+    }
+  },
+  "validation_results": [
+    {
+      "name": "Albums released before band formed",
+      "query": "\n                MATCH (b:Band)-[:RELEASED]->(a:Album)\n                WHERE b.formed_year IS NOT NULL AND a.release_year IS NOT NULL\n                      AND a.release_year < b.formed_year\n                RETURN b.name as band, b.formed_year, a.title as album, a.release_year\n                ",
+      "expected": 0,
+      "status": "passed",
+      "issue_count": 0,
+      "sample_issues": [],
+      "severity": "ok"
+    },
+    {
+      "name": "Members born after band formed",
+      "query": "\n                MATCH (p:Person)-[:MEMBER_OF]->(b:Band)\n                WHERE p.birth_year IS NOT NULL AND b.formed_year IS NOT NULL\n                      AND p.birth_year > b.formed_year\n                RETURN p.name as person, p.birth_year, b.name as band, b.formed_year\n                ",
+      "expected": 0,
+      "status": "passed",
+      "issue_count": 0,
+      "sample_issues": [],
+      "severity": "ok"
+    },
+    {
+      "name": "Circular influence relationships",
+      "query": "\n                MATCH (b1:Band)-[:INFLUENCED_BY]->(b2:Band)-[:INFLUENCED_BY]->(b1)\n                RETURN b1.name as band1, b2.name as band2\n                ",
+      "expected": 0,
+      "status": "passed",
+      "issue_count": 0,
+      "sample_issues": [],
+      "severity": "ok"
+    },
+    {
+      "name": "Bands with no formation year",
+      "query": "\n                MATCH (b:Band)\n                WHERE b.formed_year IS NULL\n                RETURN b.name as band\n                ",
+      "expected": "warning",
+      "status": "passed",
+      "issue_count": 0,
+      "sample_issues": [],
+      "severity": "ok"
+    },
+    {
+      "name": "Albums with no release year",
+      "query": "\n                MATCH (a:Album)\n                WHERE a.release_year IS NULL\n                RETURN a.title as album\n                ",
+      "expected": "warning",
+      "status": "passed",
+      "issue_count": 0,
+      "sample_issues": [],
+      "severity": "ok"
+    }
+  ]
+}

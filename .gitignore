@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Data files
+data/processed/
+data/cache/
+!data/processed/.gitkeep
+!data/cache/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Database (keep structure but not data)
+*.db/
+!data/database/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Claude local settings
+.claude/settings.local.json
+.claude/*.local.md
+
+# Temporary files
+*.tmp
+*.bak
+*~
+.temp/
+
+# API specific
+*.pyc
+instance/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+
+# Local development
+local_scripts/
+scratch/

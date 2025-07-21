@@ -1,0 +1,40 @@
+{
+  "allowedTools": [
+    "Bash",
+    "Edit",
+    "Write",
+    "MultiEdit",
+    "Read",
+    "Grep",
+    "Glob",
+    "LS",
+    "TodoWrite",
+    "WebSearch",
+    "WebFetch",
+    "NotebookRead",
+    "NotebookEdit",
+    "Task"
+  ],
+  "domainAllowlist": [
+    "github.com",
+    "docs.python.org",
+    "pypi.org",
+    "stackoverflow.com",
+    "anthropic.com",
+    "claude.ai",
+    "ollama.ai",
+    "kuzu.io"
+  ],
+  "preferences": {
+    "confirmBeforeRun": false,
+    "autoActivateVenv": true,
+    "showProgressIndicators": true
+  },
+  "projectSpecific": {
+    "defaultChunkSize": 3000,
+    "defaultChunkOverlap": 300,
+    "extractionBatchSize": 5,
+    "embeddingBatchSize": 32,
+    "fuzzyMatchThreshold": 0.85
+  }
+}

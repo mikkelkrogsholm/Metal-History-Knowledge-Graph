@@ -1,0 +1,17 @@
+# Optional - only needed for embeddings
+# ollama==0.4.5
+
+kuzu==0.7.0
+numpy==1.26.4
+pandas==2.2.3
+pydantic==2.10.3
+tqdm==4.67.1
+asyncio
+aiohttp==3.11.10
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+pytest-mock==3.15.0

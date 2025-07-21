@@ -1,0 +1,48 @@
+#!/bin/bash
+# Pre-commit hook for Metal History project
+# Runs tests and checks before allowing commits
+
+echo "🧪 Running pre-commit checks..."
+
+# Check if virtual environment is activated
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo "⚠️  Warning: Virtual environment not activated"
+    echo "   Run: source venv/bin/activate"
+fi
+
+# Run basic tests (fast tests only)
+echo "Running fast tests..."
+pytest -m "not slow" --quiet
+
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed! Please fix failing tests before committing."
+    exit 1
+fi
+
+# Check for Python syntax errors
+echo "Checking Python syntax..."
+python -m py_compile extraction/*.py pipeline/*.py schema/*.py 2>/dev/null
+
+if [ $? -ne 0 ]; then
+    echo "❌ Python syntax errors found!"
+    exit 1
+fi
+
+# Check for large files (>10MB)
+LARGE_FILES=$(find . -type f -size +10M -not -path "./.git/*" -not -path "./venv/*" -not -path "./__pycache__/*")
+if [ ! -z "$LARGE_FILES" ]; then
+    echo "⚠️  Warning: Large files detected:"
+    echo "$LARGE_FILES"
+    echo "Consider using Git LFS for these files."
+fi
+
+# Check for sensitive data patterns
+echo "Checking for sensitive data..."
+SENSITIVE_PATTERNS="(api_key|password|secret|token|private_key)"
+if grep -rEi "$SENSITIVE_PATTERNS" --include="*.py" --include="*.json" --exclude-dir=".git" --exclude-dir="venv" .; then
+    echo "❌ Potential sensitive data found! Please review and remove."
+    exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+exit 0

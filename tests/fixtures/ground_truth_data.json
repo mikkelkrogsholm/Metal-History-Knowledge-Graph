@@ -1,0 +1,320 @@
+{
+  "metadata": {
+    "description": "Manually verified ground truth data for testing entity extraction accuracy",
+    "version": "1.0",
+    "created": "2024-01-19"
+  },
+  "test_cases": [
+    {
+      "id": "test_001",
+      "text": "Black Sabbath formed in Birmingham, England in 1968. The band consisted of Tony Iommi on guitar, Geezer Butler on bass, Bill Ward on drums, and Ozzy Osbourne on vocals.",
+      "expected_entities": {
+        "bands": [
+          {
+            "name": "Black Sabbath",
+            "formed_year": 1968,
+            "origin_city": "Birmingham",
+            "origin_country": "England"
+          }
+        ],
+        "people": [
+          {
+            "name": "Tony Iommi",
+            "instruments": ["guitar"]
+          },
+          {
+            "name": "Geezer Butler",
+            "instruments": ["bass"]
+          },
+          {
+            "name": "Bill Ward",
+            "instruments": ["drums"]
+          },
+          {
+            "name": "Ozzy Osbourne",
+            "instruments": ["vocals"]
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Tony Iommi",
+          "to_entity": "Black Sabbath",
+          "role": "guitarist"
+        },
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Geezer Butler",
+          "to_entity": "Black Sabbath",
+          "role": "bassist"
+        },
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Bill Ward",
+          "to_entity": "Black Sabbath",
+          "role": "drummer"
+        },
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Ozzy Osbourne",
+          "to_entity": "Black Sabbath",
+          "role": "vocalist"
+        }
+      ]
+    },
+    {
+      "id": "test_002",
+      "text": "Iron Maiden was formed in Leyton, East London, on Christmas Day 1975 by bassist Steve Harris. Their self-titled debut album 'Iron Maiden' was released in 1980.",
+      "expected_entities": {
+        "bands": [
+          {
+            "name": "Iron Maiden",
+            "formed_year": 1975,
+            "origin_city": "Leyton, East London"
+          }
+        ],
+        "people": [
+          {
+            "name": "Steve Harris",
+            "instruments": ["bass"]
+          }
+        ],
+        "albums": [
+          {
+            "name": "Iron Maiden",
+            "release_year": 1980
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Steve Harris",
+          "to_entity": "Iron Maiden",
+          "role": "bassist",
+          "is_founder": true
+        },
+        {
+          "type": "RELEASED",
+          "from_entity": "Iron Maiden",
+          "to_entity": "Iron Maiden",
+          "year": 1980
+        }
+      ]
+    },
+    {
+      "id": "test_003",
+      "text": "Metallica released 'Master of Puppets' in 1986, their third studio album. The album is widely considered one of the greatest thrash metal albums of all time.",
+      "expected_entities": {
+        "bands": [
+          {
+            "name": "Metallica"
+          }
+        ],
+        "albums": [
+          {
+            "name": "Master of Puppets",
+            "release_year": 1986,
+            "album_number": 3
+          }
+        ],
+        "subgenres": [
+          {
+            "name": "thrash metal"
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "RELEASED",
+          "from_entity": "Metallica",
+          "to_entity": "Master of Puppets",
+          "year": 1986
+        },
+        {
+          "type": "HAS_GENRE",
+          "from_entity": "Master of Puppets",
+          "to_entity": "thrash metal"
+        }
+      ]
+    },
+    {
+      "id": "test_004",
+      "text": "The New Wave of British Heavy Metal (NWOBHM) movement began in the late 1970s and included bands like Iron Maiden, Def Leppard, and Saxon.",
+      "expected_entities": {
+        "movements": [
+          {
+            "name": "New Wave of British Heavy Metal",
+            "abbreviation": "NWOBHM",
+            "era_start": "late 1970s"
+          }
+        ],
+        "bands": [
+          {
+            "name": "Iron Maiden"
+          },
+          {
+            "name": "Def Leppard"
+          },
+          {
+            "name": "Saxon"
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "PART_OF_MOVEMENT",
+          "from_entity": "Iron Maiden",
+          "to_entity": "New Wave of British Heavy Metal"
+        },
+        {
+          "type": "PART_OF_MOVEMENT",
+          "from_entity": "Def Leppard",
+          "to_entity": "New Wave of British Heavy Metal"
+        },
+        {
+          "type": "PART_OF_MOVEMENT",
+          "from_entity": "Saxon",
+          "to_entity": "New Wave of British Heavy Metal"
+        }
+      ]
+    },
+    {
+      "id": "test_005",
+      "text": "In 1981, Ozzy Osbourne left Black Sabbath to pursue a solo career. He was replaced by Ronnie James Dio, formerly of Rainbow.",
+      "expected_entities": {
+        "people": [
+          {
+            "name": "Ozzy Osbourne"
+          },
+          {
+            "name": "Ronnie James Dio"
+          }
+        ],
+        "bands": [
+          {
+            "name": "Black Sabbath"
+          },
+          {
+            "name": "Rainbow"
+          }
+        ],
+        "events": [
+          {
+            "type": "lineup_change",
+            "year": 1981,
+            "description": "Ozzy Osbourne left Black Sabbath"
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Ozzy Osbourne",
+          "to_entity": "Black Sabbath",
+          "end_year": 1981
+        },
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Ronnie James Dio",
+          "to_entity": "Black Sabbath",
+          "start_year": 1981
+        },
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Ronnie James Dio",
+          "to_entity": "Rainbow",
+          "end_year": 1981
+        }
+      ]
+    }
+  ],
+  "edge_cases": [
+    {
+      "id": "edge_001",
+      "description": "Name variations and misspellings",
+      "text": "Black Sabath (often misspelled as Black Sabbeth or B. Sabbath) pioneered heavy metal.",
+      "expected_entities": {
+        "bands": [
+          {
+            "name": "Black Sabbath",
+            "name_variations": ["Black Sabath", "Black Sabbeth", "B. Sabbath"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "edge_002",
+      "description": "Multiple roles for same person",
+      "text": "Dave Mustaine played guitar and provided vocals for Megadeth after being fired from Metallica.",
+      "expected_entities": {
+        "people": [
+          {
+            "name": "Dave Mustaine",
+            "instruments": ["guitar", "vocals"]
+          }
+        ],
+        "bands": [
+          {
+            "name": "Megadeth"
+          },
+          {
+            "name": "Metallica"
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Dave Mustaine",
+          "to_entity": "Megadeth",
+          "roles": ["guitarist", "vocalist"]
+        },
+        {
+          "type": "MEMBER_OF",
+          "from_entity": "Dave Mustaine",
+          "to_entity": "Metallica",
+          "past_member": true
+        }
+      ]
+    },
+    {
+      "id": "edge_003",
+      "description": "Implicit relationships",
+      "text": "Judas Priest's 'British Steel' (1980) influenced countless American thrash bands.",
+      "expected_entities": {
+        "bands": [
+          {
+            "name": "Judas Priest"
+          }
+        ],
+        "albums": [
+          {
+            "name": "British Steel",
+            "release_year": 1980
+          }
+        ],
+        "subgenres": [
+          {
+            "name": "thrash",
+            "full_name": "thrash metal"
+          }
+        ]
+      },
+      "expected_relationships": [
+        {
+          "type": "RELEASED",
+          "from_entity": "Judas Priest",
+          "to_entity": "British Steel",
+          "year": 1980
+        },
+        {
+          "type": "INFLUENCED",
+          "from_entity": "British Steel",
+          "to_entity": "thrash"
+        }
+      ]
+    }
+  ]
+}
