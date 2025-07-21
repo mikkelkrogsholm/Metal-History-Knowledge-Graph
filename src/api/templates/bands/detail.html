@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}{{ band.name }} | Metal History Knowledge Graph{% endblock %}
+{% block description %}{{ band.name }} - {{ band.origin if band.origin else 'Metal band' }}. Active {{ band.formed_year }}{% if band.disbanded_year %} - {{ band.disbanded_year }}{% endif %}. Discography, members, and connections.{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "MusicGroup",
+    "name": "{{ band.name }}",
+    {% if band.origin %}"foundingLocation": "{{ band.origin }}",{% endif %}
+    {% if band.formed_year %}"foundingDate": "{{ band.formed_year }}",{% endif %}
+    {% if band.disbanded_year %}"dissolutionDate": "{{ band.disbanded_year }}",{% endif %}
+    {% if band.genres %}"genre": {{ band.genres | tojson }},{% endif %}
+    "url": "{{ request.url }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" class="mb-6">
+        <ol class="flex items-center space-x-2 text-sm">
+            <li class="flex items-center">
+                <a href="/" class="hover:text-metal-gold transition">Home</a>
+                <span class="mx-2 text-metal-silver/40">/</span>
+            </li>
+            <li class="flex items-center">
+                <a href="/bands" class="hover:text-metal-gold transition">Bands</a>
+                <span class="mx-2 text-metal-silver/40">/</span>
+            </li>
+            <li class="text-metal-silver/60" aria-current="page">{{ band.name }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Band Header -->
+    <header class="mb-8">
+        <h1 class="text-5xl font-bold text-metal-gold mb-4">{{ band.name }}</h1>
+        
+        <div class="flex flex-wrap gap-6 text-lg">
+            {% if band.origin %}
+            <div class="flex items-center gap-2">
+                <span class="text-metal-silver/60">📍</span>
+                <span>{{ band.origin }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex items-center gap-2">
+                <span class="text-metal-silver/60">📅</span>
+                <span>
+                    {{ band.formed_year if band.formed_year else 'Unknown' }}
+                    {% if band.disbanded_year %}
+                        - {{ band.disbanded_year }}
+                    {% elif band.active %}
+                        - Present
+                    {% endif %}
+                </span>
+            </div>
+            
+            {% if band.status %}
+            <div class="flex items-center gap-2">
+                <span class="{% if band.active %}text-green-500{% else %}text-red-500{% endif %}">●</span>
+                <span>{{ band.status }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if band.genres %}
+        <div class="mt-4 flex flex-wrap gap-2">
+            {% for genre in band.genres %}
+            <span class="bg-metal-gray px-3 py-1 rounded-lg text-sm">{{ genre }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </header>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Discography -->
+            <section>
+                <h2 class="text-2xl font-bold text-metal-gold mb-4">Discography</h2>
+                {% if albums %}
+                <div class="space-y-4">
+                    {% for album in albums %}
+                    <article class="bg-metal-gray rounded-lg p-4 hover:shadow-lg transition">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-xl font-semibold">
+                                    <a href="/albums/{{ album.id }}" class="hover:text-metal-gold transition">
+                                        {{ album.name }}
+                                    </a>
+                                </h3>
+                                <p class="text-metal-silver/60">
+                                    {% if album.release_date %}
+                                        Released: {{ album.release_date }}
+                                    {% endif %}
+                                    {% if album.label %}
+                                        • {{ album.label }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% if album.album_type %}
+                            <span class="text-sm bg-metal-black px-2 py-1 rounded">{{ album.album_type }}</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-metal-silver/60">No albums found in the database.</p>
+                {% endif %}
+            </section>
+            
+            <!-- Members -->
+            {% if members %}
+            <section>
+                <h2 class="text-2xl font-bold text-metal-gold mb-4">Members</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for member in members %}
+                    <div class="bg-metal-gray rounded-lg p-4">
+                        <h3 class="font-semibold">{{ member.name }}</h3>
+                        {% if member.instruments %}
+                        <p class="text-sm text-metal-silver/60">{{ member.instruments|join(', ') }}</p>
+                        {% endif %}
+                        {% if member.years %}
+                        <p class="text-sm text-metal-silver/60">{{ member.years }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <aside class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="bg-metal-gray rounded-lg p-6">
+                <h2 class="text-xl font-bold text-metal-gold mb-4">Quick Stats</h2>
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Total Albums</dt>
+                        <dd class="text-2xl font-bold text-metal-gold">{{ album_count }}</dd>
+                    </div>
+                    {% if member_count %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Total Members</dt>
+                        <dd class="text-2xl font-bold text-metal-gold">{{ member_count }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if years_active %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Years Active</dt>
+                        <dd class="text-2xl font-bold text-metal-gold">{{ years_active }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+            
+            <!-- Related Bands -->
+            {% if related_bands %}
+            <div class="bg-metal-gray rounded-lg p-6">
+                <h2 class="text-xl font-bold text-metal-gold mb-4">Related Bands</h2>
+                <ul class="space-y-2">
+                    {% for related in related_bands %}
+                    <li>
+                        <a href="/bands/{{ related.id }}" class="hover:text-metal-gold transition">
+                            {{ related.name }}
+                        </a>
+                        {% if related.relationship %}
+                        <span class="text-xs text-metal-silver/60 block">{{ related.relationship }}</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Actions -->
+            <div class="bg-metal-gray rounded-lg p-6">
+                <h2 class="text-xl font-bold text-metal-gold mb-4">Explore</h2>
+                <div class="space-y-3">
+                    <a href="/graph/{{ band.id }}" class="block w-full bg-metal-gold hover:bg-yellow-600 text-black px-4 py-2 rounded-lg transition text-center font-semibold">
+                        View in Graph
+                    </a>
+                    <a href="/api/v1/bands/{{ band.id }}" class="block w-full bg-metal-black hover:bg-gray-800 text-metal-silver px-4 py-2 rounded-lg transition text-center border border-metal-silver/20">
+                        View API Data
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
