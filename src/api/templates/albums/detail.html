@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}{{ album.name }} by {{ band.name if band else 'Unknown' }} | Metal History Knowledge Graph{% endblock %}
+{% block description %}{{ album.name }} - {{ album.album_type if album.album_type else 'Album' }} by {{ band.name if band else 'Unknown' }}. Released {{ album.release_date if album.release_date else 'Unknown' }}. Track listing and details.{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "MusicAlbum",
+    "name": "{{ album.name }}",
+    {% if band %}"byArtist": {
+        "@type": "MusicGroup",
+        "name": "{{ band.name }}",
+        "url": "/bands/{{ band.id }}"
+    },{% endif %}
+    {% if album.release_date %}"datePublished": "{{ album.release_date }}",{% endif %}
+    {% if album.genres %}"genre": {{ album.genres | tojson }},{% endif %}
+    {% if album.label %}"recordLabel": "{{ album.label }}",{% endif %}
+    "url": "{{ request.url }}"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" class="mb-6">
+        <ol class="flex items-center space-x-2 text-sm">
+            <li class="flex items-center">
+                <a href="/" class="hover:text-metal-gold transition">Home</a>
+                <span class="mx-2 text-metal-silver/40">/</span>
+            </li>
+            <li class="flex items-center">
+                <a href="/albums" class="hover:text-metal-gold transition">Albums</a>
+                <span class="mx-2 text-metal-silver/40">/</span>
+            </li>
+            <li class="text-metal-silver/60" aria-current="page">{{ album.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Album Cover and Info -->
+        <aside class="lg:col-span-1">
+            <!-- Album Cover -->
+            <div class="aspect-square bg-gradient-to-br from-metal-black to-metal-gray rounded-lg flex items-center justify-center mb-6">
+                <span class="text-9xl opacity-20">💿</span>
+            </div>
+            
+            <!-- Album Info -->
+            <div class="bg-metal-gray rounded-lg p-6 space-y-4">
+                <h2 class="text-xl font-bold text-metal-gold">Album Information</h2>
+                
+                <dl class="space-y-3">
+                    {% if band %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Artist</dt>
+                        <dd class="font-semibold">
+                            <a href="/bands/{{ band.id }}" class="hover:text-metal-gold transition">
+                                {{ band.name }}
+                            </a>
+                        </dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if album.release_date %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Release Date</dt>
+                        <dd class="font-semibold">{{ album.release_date }}</dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if album.label %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Label</dt>
+                        <dd class="font-semibold">{{ album.label }}</dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if album.album_type %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Type</dt>
+                        <dd class="font-semibold">{{ album.album_type }}</dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if album.catalog_number %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Catalog #</dt>
+                        <dd class="font-semibold">{{ album.catalog_number }}</dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if album.format %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Format</dt>
+                        <dd class="font-semibold">{{ album.format }}</dd>
+                    </div>
+                    {% endif %}
+                    
+                    {% if album.duration %}
+                    <div>
+                        <dt class="text-metal-silver/60 text-sm">Duration</dt>
+                        <dd class="font-semibold">{{ album.duration }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+                
+                {% if album.genres %}
+                <div>
+                    <h3 class="text-metal-silver/60 text-sm mb-2">Genres</h3>
+                    <div class="flex flex-wrap gap-2">
+                        {% for genre in album.genres %}
+                        <span class="bg-metal-black px-2 py-1 rounded text-sm">{{ genre }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Actions -->
+            <div class="mt-6 space-y-3">
+                <a href="/graph/album/{{ album.id }}" class="block w-full bg-metal-gold hover:bg-yellow-600 text-black px-4 py-2 rounded-lg transition text-center font-semibold">
+                    View in Graph
+                </a>
+                <a href="/api/v1/albums/{{ album.id }}" class="block w-full bg-metal-black hover:bg-gray-800 text-metal-silver px-4 py-2 rounded-lg transition text-center border border-metal-silver/20">
+                    View API Data
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Album Header -->
+            <header>
+                <h1 class="text-4xl font-bold text-metal-gold mb-2">{{ album.name }}</h1>
+                {% if band %}
+                <p class="text-xl text-metal-silver/80">
+                    by <a href="/bands/{{ band.id }}" class="text-metal-gold hover:text-yellow-400 transition">{{ band.name }}</a>
+                </p>
+                {% endif %}
+            </header>
+            
+            <!-- Track Listing -->
+            {% if tracks %}
+            <section>
+                <h2 class="text-2xl font-bold text-metal-gold mb-4">Track Listing</h2>
+                <ol class="space-y-2">
+                    {% for track in tracks %}
+                    <li class="bg-metal-gray rounded p-4 flex items-center justify-between hover:bg-gray-700 transition">
+                        <div class="flex items-center gap-4">
+                            <span class="text-2xl font-bold text-metal-silver/40">{{ track.position }}</span>
+                            <div>
+                                <p class="font-semibold">{{ track.title }}</p>
+                                {% if track.features %}
+                                <p class="text-sm text-metal-silver/60">feat. {{ track.features }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if track.duration %}
+                        <span class="text-metal-silver/60">{{ track.duration }}</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ol>
+                
+                {% if total_duration %}
+                <p class="mt-4 text-right text-metal-silver/60">
+                    Total duration: <span class="font-semibold">{{ total_duration }}</span>
+                </p>
+                {% endif %}
+            </section>
+            {% else %}
+            <section>
+                <h2 class="text-2xl font-bold text-metal-gold mb-4">Track Listing</h2>
+                <p class="text-metal-silver/60">Track listing not available.</p>
+            </section>
+            {% endif %}
+            
+            <!-- Credits -->
+            {% if credits %}
+            <section>
+                <h2 class="text-2xl font-bold text-metal-gold mb-4">Credits</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for credit in credits %}
+                    <div class="bg-metal-gray rounded p-4">
+                        <h3 class="font-semibold">{{ credit.person }}</h3>
+                        <p class="text-sm text-metal-silver/60">{{ credit.role }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+            
+            <!-- Related Albums -->
+            {% if related_albums %}
+            <section>
+                <h2 class="text-2xl font-bold text-metal-gold mb-4">Related Albums</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for related in related_albums %}
+                    <article class="bg-metal-gray rounded-lg p-4 hover:shadow-lg transition">
+                        <h3 class="font-semibold">
+                            <a href="/albums/{{ related.id }}" class="hover:text-metal-gold transition">
+                                {{ related.name }}
+                            </a>
+                        </h3>
+                        {% if related.band_name %}
+                        <p class="text-sm text-metal-silver/60">by {{ related.band_name }}</p>
+                        {% endif %}
+                        {% if related.release_date %}
+                        <p class="text-sm text-metal-silver/60">{{ related.release_date }}</p>
+                        {% endif %}
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

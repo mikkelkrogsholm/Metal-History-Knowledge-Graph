@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% import 'components/pagination.html' as pagination_macros %}
+
+{% block title %}Bands - Page {{ page }} | Metal History Knowledge Graph{% endblock %}
+{% block description %}Browse {{ total }} metal bands in our knowledge graph. Page {{ page }} of {{ total_pages }}.{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-bold text-metal-gold mb-4">Metal Bands</h1>
+        <p class="text-xl text-metal-silver/80">
+            Explore {{ total }} bands in the Metal History Knowledge Graph
+        </p>
+    </header>
+    
+    <!-- Filters and Sorting -->
+    <div class="bg-metal-gray rounded-lg p-4 mb-8">
+        <form method="get" action="/bands" class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+                <label for="search" class="sr-only">Search bands</label>
+                <input 
+                    type="search" 
+                    id="search"
+                    name="q" 
+                    value="{{ search_query }}"
+                    placeholder="Search bands..." 
+                    class="w-full bg-metal-black text-metal-silver px-4 py-2 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+                >
+            </div>
+            
+            <!-- Sort -->
+            <div>
+                <label for="sort" class="sr-only">Sort by</label>
+                <select 
+                    id="sort"
+                    name="sort" 
+                    class="bg-metal-black text-metal-silver px-4 py-2 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+                    onchange="this.form.submit()"
+                >
+                    <option value="name" {% if sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="-name" {% if sort == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="formed_year" {% if sort == 'formed_year' %}selected{% endif %}>Oldest First</option>
+                    <option value="-formed_year" {% if sort == '-formed_year' %}selected{% endif %}>Newest First</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="bg-metal-gold hover:bg-yellow-600 text-black px-6 py-2 rounded-lg transition font-semibold">
+                Apply Filters
+            </button>
+        </form>
+    </div>
+    
+    <!-- Results Count -->
+    {% if search_query %}
+    <div class="mb-6 text-metal-silver/80">
+        Found <span class="text-metal-gold font-semibold">{{ total }}</span> bands matching "{{ search_query }}"
+    </div>
+    {% endif %}
+    
+    <!-- Bands Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {% for band in bands %}
+        <article class="bg-metal-gray rounded-lg p-6 hover:shadow-xl transition-all hover:border-metal-gold border border-transparent">
+            <h2 class="text-xl font-bold mb-2">
+                <a href="/bands/{{ band.id }}" class="text-metal-gold hover:text-yellow-400 transition">
+                    {{ band.name }}
+                </a>
+            </h2>
+            
+            {% if band.origin %}
+            <p class="text-sm text-metal-silver/60 mb-2">
+                <span class="inline-block w-5">📍</span> {{ band.origin }}
+            </p>
+            {% endif %}
+            
+            {% if band.formed_year %}
+            <p class="text-sm text-metal-silver/60 mb-2">
+                <span class="inline-block w-5">📅</span> Formed: {{ band.formed_year }}
+                {% if band.disbanded_year %}
+                    - {{ band.disbanded_year }}
+                {% elif band.active %}
+                    - Present
+                {% endif %}
+            </p>
+            {% endif %}
+            
+            {% if band.genres %}
+            <div class="mt-3">
+                <div class="flex flex-wrap gap-2">
+                    {% for genre in band.genres[:3] %}
+                    <span class="text-xs bg-metal-black px-2 py-1 rounded">{{ genre }}</span>
+                    {% endfor %}
+                    {% if band.genres|length > 3 %}
+                    <span class="text-xs text-metal-silver/40">+{{ band.genres|length - 3 }} more</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if band.album_count %}
+            <p class="text-sm mt-3 text-metal-silver/80">
+                <span class="text-metal-gold">{{ band.album_count }}</span> album{{ 's' if band.album_count != 1 else '' }}
+            </p>
+            {% endif %}
+        </article>
+        {% else %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-xl text-metal-silver/60">No bands found.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {{ pagination_macros.pagination(page, total_pages, '/bands', {'sort': sort, 'q': search_query} if search_query or sort else {}) }}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Add HTMX enhancement for smoother pagination (optional)
+if (typeof htmx !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable boost on pagination links
+        document.querySelectorAll('nav a').forEach(link => {
+            link.setAttribute('hx-boost', 'true');
+            link.setAttribute('hx-target', '#main-content');
+            link.setAttribute('hx-swap', 'innerHTML');
+        });
+    });
+}
+</script>
+{% endblock %}

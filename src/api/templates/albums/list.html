@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% import 'components/pagination.html' as pagination_macros %}
+
+{% block title %}Albums - Page {{ page }} | Metal History Knowledge Graph{% endblock %}
+{% block description %}Browse {{ total }} metal albums in our knowledge graph. Page {{ page }} of {{ total_pages }}.{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <header class="mb-8">
+        <h1 class="text-4xl font-bold text-metal-gold mb-4">Metal Albums</h1>
+        <p class="text-xl text-metal-silver/80">
+            Explore {{ total }} albums in the Metal History Knowledge Graph
+        </p>
+    </header>
+    
+    <!-- Filters and Sorting -->
+    <div class="bg-metal-gray rounded-lg p-4 mb-8">
+        <form method="get" action="/albums" class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+                <label for="search" class="sr-only">Search albums</label>
+                <input 
+                    type="search" 
+                    id="search"
+                    name="q" 
+                    value="{{ search_query }}"
+                    placeholder="Search albums..." 
+                    class="w-full bg-metal-black text-metal-silver px-4 py-2 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+                >
+            </div>
+            
+            <!-- Year Filter -->
+            <div class="flex gap-2">
+                <input 
+                    type="number" 
+                    name="year_from" 
+                    value="{{ year_from }}"
+                    placeholder="From year" 
+                    min="1960" 
+                    max="2024"
+                    class="w-24 bg-metal-black text-metal-silver px-3 py-2 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+                >
+                <input 
+                    type="number" 
+                    name="year_to" 
+                    value="{{ year_to }}"
+                    placeholder="To year" 
+                    min="1960" 
+                    max="2024"
+                    class="w-24 bg-metal-black text-metal-silver px-3 py-2 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+                >
+            </div>
+            
+            <!-- Sort -->
+            <div>
+                <label for="sort" class="sr-only">Sort by</label>
+                <select 
+                    id="sort"
+                    name="sort" 
+                    class="bg-metal-black text-metal-silver px-4 py-2 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none"
+                    onchange="this.form.submit()"
+                >
+                    <option value="name" {% if sort == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="-name" {% if sort == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="-release_date" {% if sort == '-release_date' %}selected{% endif %}>Newest First</option>
+                    <option value="release_date" {% if sort == 'release_date' %}selected{% endif %}>Oldest First</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="bg-metal-gold hover:bg-yellow-600 text-black px-6 py-2 rounded-lg transition font-semibold">
+                Apply Filters
+            </button>
+        </form>
+    </div>
+    
+    <!-- Results Count -->
+    {% if search_query or year_from or year_to %}
+    <div class="mb-6 text-metal-silver/80">
+        Found <span class="text-metal-gold font-semibold">{{ total }}</span> albums
+        {% if search_query %} matching "{{ search_query }}"{% endif %}
+        {% if year_from or year_to %} from {{ year_from or '∞' }} to {{ year_to or '∞' }}{% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Albums Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {% for album in albums %}
+        <article class="bg-metal-gray rounded-lg overflow-hidden hover:shadow-xl transition-all hover:border-metal-gold border border-transparent">
+            <!-- Album Cover Placeholder -->
+            <div class="aspect-square bg-gradient-to-br from-metal-black to-metal-gray flex items-center justify-center">
+                <span class="text-6xl opacity-20">💿</span>
+            </div>
+            
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-1">
+                    <a href="/albums/{{ album.id }}" class="text-metal-gold hover:text-yellow-400 transition line-clamp-2">
+                        {{ album.name }}
+                    </a>
+                </h2>
+                
+                {% if album.band_name %}
+                <p class="text-metal-silver/80 mb-2">
+                    by <a href="/bands/{{ album.band_id }}" class="hover:text-metal-gold transition">{{ album.band_name }}</a>
+                </p>
+                {% endif %}
+                
+                <div class="text-sm text-metal-silver/60 space-y-1">
+                    {% if album.release_date %}
+                    <p>
+                        <span class="inline-block w-5">📅</span> {{ album.release_date }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if album.label %}
+                    <p>
+                        <span class="inline-block w-5">🏷️</span> {{ album.label }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if album.album_type %}
+                    <p>
+                        <span class="inline-block w-5">💽</span> {{ album.album_type }}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                {% if album.track_count %}
+                <p class="text-sm mt-3 text-metal-silver/80">
+                    <span class="text-metal-gold">{{ album.track_count }}</span> track{{ 's' if album.track_count != 1 else '' }}
+                </p>
+                {% endif %}
+            </div>
+        </article>
+        {% else %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-xl text-metal-silver/60">No albums found.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% set query_params = {} %}
+    {% if sort %}{% set _ = query_params.update({'sort': sort}) %}{% endif %}
+    {% if search_query %}{% set _ = query_params.update({'q': search_query}) %}{% endif %}
+    {% if year_from %}{% set _ = query_params.update({'year_from': year_from}) %}{% endif %}
+    {% if year_to %}{% set _ = query_params.update({'year_to': year_to}) %}{% endif %}
+    
+    {{ pagination_macros.pagination(page, total_pages, '/albums', query_params) }}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Add HTMX enhancement for smoother pagination (optional)
+if (typeof htmx !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enable boost on pagination links
+        document.querySelectorAll('nav a').forEach(link => {
+            link.setAttribute('hx-boost', 'true');
+            link.setAttribute('hx-target', '#main-content');
+            link.setAttribute('hx-swap', 'innerHTML');
+        });
+    });
+}
+</script>
+{% endblock %}
