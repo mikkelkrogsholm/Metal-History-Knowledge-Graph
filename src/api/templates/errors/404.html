@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found | Metal History Knowledge Graph{% endblock %}
+{% block description %}The page you're looking for doesn't exist in the Metal History Knowledge Graph.{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="text-center max-w-2xl mx-auto px-4">
+        <!-- Error Icon -->
+        <div class="text-8xl mb-6">🎸</div>
+        
+        <!-- Error Code -->
+        <h1 class="text-6xl font-bold text-metal-gold mb-4">404</h1>
+        
+        <!-- Error Message -->
+        <h2 class="text-3xl font-semibold mb-4">Page Not Found</h2>
+        
+        <p class="text-lg mb-8 text-metal-silver/80">
+            The page you're looking for has vanished into the void, 
+            like a lost demo tape from the early days of metal.
+        </p>
+        
+        <!-- Suggestions -->
+        <div class="bg-metal-gray rounded-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-metal-gold mb-4">You might be looking for:</h3>
+            <ul class="space-y-2 text-left max-w-md mx-auto">
+                <li class="flex items-center space-x-2">
+                    <span class="text-metal-gold">→</span>
+                    <a href="/bands" class="hover:text-metal-gold transition">Browse all bands</a>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <span class="text-metal-gold">→</span>
+                    <a href="/albums" class="hover:text-metal-gold transition">Explore albums</a>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <span class="text-metal-gold">→</span>
+                    <a href="/graph" class="hover:text-metal-gold transition">View the knowledge graph</a>
+                </li>
+                <li class="flex items-center space-x-2">
+                    <span class="text-metal-gold">→</span>
+                    <a href="/search" class="hover:text-metal-gold transition">Search the database</a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/" class="bg-metal-gold hover:bg-yellow-600 text-black px-6 py-3 rounded-lg transition font-semibold">
+                Return Home
+            </a>
+            <button onclick="history.back()" class="bg-metal-gray hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition border border-metal-silver/20">
+                Go Back
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
