@@ -27,7 +27,7 @@
         <div class="relative">
             <input type="search" 
                    name="q" 
-                   value="{{ query }}"
+                   {% if query %}value="{{ query }}"{% endif %}
                    placeholder="Search for bands, albums, or people..."
                    class="w-full bg-metal-gray text-metal-silver px-4 py-3 pr-12 rounded-lg border border-metal-silver/20 focus:border-metal-gold focus:outline-none text-lg"
                    hx-get="/search/suggestions"
