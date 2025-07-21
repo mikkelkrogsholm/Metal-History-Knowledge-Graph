@@ -5,12 +5,21 @@ Web routes for search functionality (server-side rendered)
 from fastapi import APIRouter, Request, Query, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional, List
+from typing import Optional, List, Union
 from pathlib import Path
 import math
 
 from src.api.deps import get_db
 from src.api.services.database import DatabaseService
+
+def optional_int(value: Union[str, int, None]) -> Optional[int]:
+    """Convert empty string to None for optional int parameters"""
+    if value == "" or value is None:
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
 
 # Configure templates
 template_dir = Path(__file__).parent.parent / "templates"
@@ -69,8 +78,8 @@ async def search_results(
     q: Optional[str] = Query(None, description="Search query"),
     type: List[str] = Query(default=[], description="Entity types to search"),
     sort: str = Query("relevance", description="Sort order"),
-    year_from: Optional[int] = Query(None, description="Filter by year from"),
-    year_to: Optional[int] = Query(None, description="Filter by year to"),
+    year_from: Optional[str] = Query(None, description="Filter by year from"),
+    year_to: Optional[str] = Query(None, description="Filter by year to"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: DatabaseService = Depends(get_db)
@@ -80,9 +89,13 @@ async def search_results(
     total = 0
     total_pages = 0
     
+    # Convert year parameters
+    year_from_int = optional_int(year_from)
+    year_to_int = optional_int(year_to)
+    
     if q:
         search_results = await search_entities(
-            db, q, type, sort, year_from, year_to, page, page_size
+            db, q, type, sort, year_from_int, year_to_int, page, page_size
         )
         results = search_results["results"]
         total = search_results["total"]
