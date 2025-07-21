@@ -33,8 +33,8 @@ async def search_page(
     q: Optional[str] = Query(None, description="Search query"),
     type: List[str] = Query(default=[], description="Entity types to search"),
     sort: str = Query("relevance", description="Sort order"),
-    year_from: Optional[int] = Query(None, description="Filter by year from"),
-    year_to: Optional[int] = Query(None, description="Filter by year to"),
+    year_from: Optional[str] = Query(None, description="Filter by year from"),
+    year_to: Optional[str] = Query(None, description="Filter by year to"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: DatabaseService = Depends(get_db)
@@ -44,10 +44,14 @@ async def search_page(
     total = 0
     total_pages = 0
     
+    # Convert year parameters
+    year_from_int = optional_int(year_from)
+    year_to_int = optional_int(year_to)
+    
     if q:
         # Perform search
         search_results = await search_entities(
-            db, q, type, sort, year_from, year_to, page, page_size
+            db, q, type, sort, year_from_int, year_to_int, page, page_size
         )
         results = search_results["results"]
         total = search_results["total"]
@@ -65,9 +69,9 @@ async def search_page(
             "total_pages": total_pages,
             "types": type,
             "sort": sort,
-            "year_from": year_from,
-            "year_to": year_to,
-            "show_filters": bool(type or year_from or year_to or sort != "relevance"),
+            "year_from": year_from_int,
+            "year_to": year_to_int,
+            "show_filters": bool(type or year_from_int or year_to_int or sort != "relevance"),
             "initial_results": bool(q)
         }
     )
