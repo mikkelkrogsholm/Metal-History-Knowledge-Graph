@@ -160,7 +160,10 @@ document.addEventListener('click', function(event) {
     const suggestions = document.getElementById('search-suggestions');
     const searchInput = document.querySelector('input[name="q"]');
     
-    if (!searchInput.contains(event.target) && !suggestions.contains(event.target)) {
+    // Check if elements exist before accessing them
+    if (suggestions && searchInput && 
+        !searchInput.contains(event.target) && 
+        !suggestions.contains(event.target)) {
         suggestions.innerHTML = '';
     }
 });

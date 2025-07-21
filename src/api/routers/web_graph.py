@@ -377,7 +377,7 @@ async def get_geographic_graph(
         WITH b.origin_country as country, collect(b) as bands
         RETURN country,
                size(bands) as band_count,
-               bands[0..10] as sample_bands
+               bands as all_bands
         ORDER BY band_count DESC
         LIMIT 20
     """
@@ -398,8 +398,9 @@ async def get_geographic_graph(
             "y": 400 + 300 * math.sin(2 * math.pi * i / len(country_result))
         })
         
-        # Add sample bands
-        for j, band in enumerate(row["sample_bands"]):
+        # Add sample bands (take first 10 from all_bands)
+        sample_bands = row["all_bands"][:10] if row["all_bands"] else []
+        for j, band in enumerate(sample_bands):
             if j >= limit // len(country_result):
                 break
                 
@@ -409,8 +410,8 @@ async def get_geographic_graph(
                 "name": band["name"],
                 "year": band.get("formed_year"),
                 "type": "band",
-                "x": nodes[-1]["x"] + 50 * math.cos(2 * math.pi * j / len(row["sample_bands"])),
-                "y": nodes[-1]["y"] + 50 * math.sin(2 * math.pi * j / len(row["sample_bands"]))
+                "x": nodes[-1]["x"] + 50 * math.cos(2 * math.pi * j / len(sample_bands)),
+                "y": nodes[-1]["y"] + 50 * math.sin(2 * math.pi * j / len(sample_bands))
             })
             
             edges.append({
